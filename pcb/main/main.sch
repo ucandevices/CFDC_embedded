@@ -904,28 +904,6 @@ F 3 "~" H 4250 3200 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L Connector:TestPoint TP9
-U 1 1 5ECD5181
-P 3650 4050
-F 0 "TP9" V 3604 4238 50  0000 L CNN
-F 1 "TestPoint" V 3695 4238 50  0001 L CNN
-F 2 "Measurement_Points:Measurement_Point_Round-SMD-Pad_Small" H 3850 4050 50  0001 C CNN
-F 3 "~" H 3850 4050 50  0001 C CNN
-	1    3650 4050
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR0110
-U 1 1 5ECD530A
-P 3650 4050
-F 0 "#PWR0110" H 3650 3800 50  0001 C CNN
-F 1 "GND" H 3655 3877 50  0000 C CNN
-F 2 "" H 3650 4050 50  0001 C CNN
-F 3 "" H 3650 4050 50  0001 C CNN
-	1    3650 4050
-	-1   0    0    -1  
-$EndComp
-$Comp
 L power:+3V3 #PWR0111
 U 1 1 5ECD5863
 P 3300 4000
