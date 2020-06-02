@@ -13683,14 +13683,14 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV2;
  8005334:	2302      	movs	r3, #2
  8005336:	67fb      	str	r3, [r7, #124]	; 0x7c
-  RCC_OscInitStruct.PLL.PLLN = 12;
- 8005338:	230c      	movs	r3, #12
+  RCC_OscInitStruct.PLL.PLLN = 36;
+ 8005338:	2324      	movs	r3, #36	; 0x24
  800533a:	f8c7 3080 	str.w	r3, [r7, #128]	; 0x80
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
  800533e:	2302      	movs	r3, #2
  8005340:	f8c7 3084 	str.w	r3, [r7, #132]	; 0x84
-  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
- 8005344:	2302      	movs	r3, #2
+  RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV6;
+ 8005344:	2306      	movs	r3, #6
  8005346:	f8c7 3088 	str.w	r3, [r7, #136]	; 0x88
   RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
  800534a:	2302      	movs	r3, #2
@@ -13712,8 +13712,8 @@ void SystemClock_Config(void)
  8005364:	230f      	movs	r3, #15
  8005366:	647b      	str	r3, [r7, #68]	; 0x44
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
- 8005368:	2301      	movs	r3, #1
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+ 8005368:	2303      	movs	r3, #3
  800536a:	64bb      	str	r3, [r7, #72]	; 0x48
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
  800536c:	2300      	movs	r3, #0
@@ -13725,9 +13725,9 @@ void SystemClock_Config(void)
  8005374:	2300      	movs	r3, #0
  8005376:	657b      	str	r3, [r7, #84]	; 0x54
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
  8005378:	f107 0344 	add.w	r3, r7, #68	; 0x44
- 800537c:	2100      	movs	r1, #0
+ 800537c:	2107      	movs	r1, #7
  800537e:	4618      	mov	r0, r3
  8005380:	f7fc ff00 	bl	8002184 <HAL_RCC_ClockConfig>
  8005384:	4603      	mov	r3, r0
