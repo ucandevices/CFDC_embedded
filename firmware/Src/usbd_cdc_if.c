@@ -24,6 +24,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "main.h"
+#include "RING.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -32,7 +33,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+extern Ring_type usb_rx;
+extern Ring_type usb_tx;
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -266,6 +268,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  RING_put(&usb_rx, Buf, *Len);
   CDC_Transmit_FS(Buf, *Len);
   return (USBD_OK);
   /* USER CODE END 6 */
