@@ -7,12 +7,15 @@
 
 
 #include "ucan_fd_protocol_stm32g431.h"
-
+#include "jump_to_boot.h"
 Ring_type usb_rx;
 Ring_type usb_tx;
 
-uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data,  uint32_t len){
+uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
     FDCAN_InitTypeDef init_values;
+
+    if (data == NULL)
+    	return 1;
 
 	switch(data[0]) {
 	case UCAN_FD_INIT:
@@ -31,7 +34,10 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data,  uint32_t len){
     case UCAN_FD_SAVE_CONFIG: 
     break;
     case UCAN_FD_GO_TO_BOOTLOADER: 
-    //todo: send ack, go to bootloader,
+    //todo: send ack,
+
+    	jump_to_boot();
+
     break;
     case UCAN_FD_GET_CAN_STATUS: 
 

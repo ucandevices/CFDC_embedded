@@ -130,14 +130,7 @@ typedef struct {
 	FDCAN_Device_DescritionDef dev_desc; /*< Holds Device description SW/HW version ID. */
 } UCAN_AckFrameDef;
 
-
-uint8_t UCAN_USB_is_rx_ring_empty();
-uint8_t UCAN_USB_is_rx_full_full();
-void UCAN_USB_put_rx_into_ring(uint8_t *data, uint32_t len);
-
-uint8_t UCAN_USB_is_tx_ring_empty();
-
-uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data,  uint32_t len);
+uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data);
 uint8_t UCAN_execute_CAN_to_USB_frame(uint8_t *data, uint32_t len);
 
 #endif /* SRC_UCAN_FD_PROTOCOL_STM32G431_H_ */

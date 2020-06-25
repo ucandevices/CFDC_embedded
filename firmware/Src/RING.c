@@ -45,7 +45,7 @@ uint8_t* RING_get(Ring_type *ring){
     if(RING_is_empty(ring)) 
         return retval;
 
-   // retval = &ring.&data[ring.tail][0];
+    retval = &ring->data[ring->tail][0];
     ring->tail++;
     if(ring->tail >= UCAN_FRAME_RX_FIFO_SIZE){
         ring->tail = 0;

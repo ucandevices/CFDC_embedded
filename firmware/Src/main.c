@@ -70,7 +70,7 @@ static void MX_FDCAN1_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  char text[10] = "empty";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -96,6 +96,12 @@ int main(void)
   /* USER CODE BEGIN 2 */
   RING_init(&usb_rx);
   RING_init(&usb_tx);
+
+  for(uint8_t i = 0; i < 10; i++){
+	  HAL_Delay(i*10);
+	  HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+  }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */

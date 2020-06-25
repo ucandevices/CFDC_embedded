@@ -23,6 +23,7 @@
 "Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.o"
 "Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.o"
 "Src/RING.o"
+"Src/jump_to_boot.o"
 "Src/main.o"
 "Src/stm32g4xx_hal_msp.o"
 "Src/stm32g4xx_it.o"
