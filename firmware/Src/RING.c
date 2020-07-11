@@ -26,9 +26,9 @@ void RING_put(Ring_type *ring, uint8_t *data, uint32_t len) {
     if(len > MAX_CAN_FRAME_SIZE)
     	return;
 
-    memcpy(&ring->data[ring->head][0], data, len);
+    memcpy(&(ring->data[ring->head][0]), data, len);
     if(len < MAX_CAN_FRAME_SIZE) {
-        memset(&ring->data[ring->head][len], 1, MAX_CAN_FRAME_SIZE - len);
+        memset(&(ring->data[ring->head][len]), 1, MAX_CAN_FRAME_SIZE - len);
     }
     ring->head++;
     ring->status = RING_IS_NOT_FULL;

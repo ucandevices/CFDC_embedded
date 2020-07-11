@@ -8,8 +8,6 @@
 
 #include "ucan_fd_protocol_stm32g431.h"
 #include "jump_to_boot.h"
-Ring_type usb_rx;
-Ring_type usb_tx;
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
     FDCAN_InitTypeDef init_values;
@@ -19,7 +17,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 
 	switch(data[0]) {
 	case UCAN_FD_INIT:
-        memcpy(data[1], &init_values, sizeof(FDCAN_InitTypeDef));
+        memcpy(&init_values,&(data[1]) , sizeof(FDCAN_InitTypeDef));
         //UCAN_Init(init_values);
         //add ACK to fifo.
 	break;

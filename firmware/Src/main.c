@@ -25,7 +25,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ucan_fd_protocol_stm32g431.h"
-// #include "RING.h"
+ #include "RING.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,8 +46,8 @@
 FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN PV */
-extern Ring_type usb_rx;
-extern Ring_type usb_tx;
+Ring_type usb_rx;
+Ring_type usb_tx;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -108,8 +108,14 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
+	  static uint8_t* data_ptr;
+	  data_ptr = RING_get(&usb_rx);
+	  if (data_ptr != NULL)
+	  {
+		  UCAN_execute_USB_to_CAN_frame(data_ptr);
+	  }
 
+	  /* USER CODE END WHILE */
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
