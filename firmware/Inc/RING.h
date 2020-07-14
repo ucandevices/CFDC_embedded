@@ -18,7 +18,7 @@ typedef enum{
 
 typedef struct {
 #warning "use defined values"
-    uint8_t data[32][64];
+    uint8_t data[32][MAX_CAN_FRAME_SIZE];
     uint8_t tail;
     uint8_t head;
     Ring_status_type status;

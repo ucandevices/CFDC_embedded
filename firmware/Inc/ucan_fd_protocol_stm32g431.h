@@ -11,11 +11,11 @@
 
 #include "main.h"
 #include "stm32g4xx_hal_fdcan.h"
-#include "RING.h"
+//#include "RING.h"
 
-#define MAX_CAN_FRAME_SIZE (64u)
+#define MAX_CAN_FRAME_SIZE (80u)
 #define UCAN_SERIAL_NO_SIZE (8u)
-#define UCAN_FRAME_RX_FIFO_SIZE (32u)
+#define UCAN_FRAME_RX_FIFO_SIZE (16u)
 #define UCAN_FRAME_TX_FIFO_SIZE UCAN_FRAME_RX_FIFO_SIZE
 
 
