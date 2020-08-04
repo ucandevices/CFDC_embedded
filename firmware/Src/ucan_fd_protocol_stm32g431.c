@@ -9,9 +9,10 @@
 #include "ucan_fd_protocol_stm32g431.h"
 #include "jump_to_boot.h"
 
+
+
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
     FDCAN_InitTypeDef init_values;
-
     if (data == NULL)
     	return 1;
 
@@ -47,7 +48,8 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 
     break;
     
-		default: break;
+	default:
+		return 1;
 	}
 
     return 0;

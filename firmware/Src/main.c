@@ -25,7 +25,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ucan_fd_protocol_stm32g431.h"
- #include "RING.h"
+#include "RING.h"
+#include "usbd_cdc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -55,11 +56,20 @@ void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
-
+extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+UCAN_AckFrameDef ack_frame = {
+		UCAN_FD_ACK,	// frame_type
+		UCAN_FD_COMMAND_OK, //cmd status
+		{},//FDCAN_ProtocolStatusTypeDef
+		{},//FDCAN_ErrorCountersTypeDef
+		{},//FDCAN_InitTypeDef
+		{2,1,UCAN_CAN_FD,{1,2,3,4,5}} //FDCAN_Device8_DescritionDef,
+};
 
 /* USER CODE END 0 */
 
@@ -112,7 +122,27 @@ int main(void)
 	  data_ptr = RING_get(&usb_rx);
 	  if (data_ptr != NULL)
 	  {
-		  UCAN_execute_USB_to_CAN_frame(data_ptr);
+		  FDCAN_InitTypeDef init_values;
+		  if (UCAN_execute_USB_to_CAN_frame(data_ptr) == 0);
+		  {
+			  HAL_FDCAN_GetProtocolStatus(&hfdcan1,&(ack_frame.can_protocol_status));
+			  HAL_FDCAN_GetErrorCounters(&hfdcan1,&(ack_frame.can_error_counters));
+		//    memcpy(&ack_frame.can_init_structure,&hfdcan1.Instance,sizeof(hfdcan1.Instance));
+			  RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+		  }
+	  }
+
+	  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
+//	  if (hcdc->TxState != 0) //USB_TX not bussy
+	  {
+		  data_ptr = RING_get(&usb_tx);
+		  if (data_ptr != NULL)
+		  {
+			  while (CDC_Transmit_FS(data_ptr, sizeof(ack_frame)) != USBD_OK)
+			  {
+
+			  }
+		  }
 	  }
 
 	  /* USER CODE END WHILE */

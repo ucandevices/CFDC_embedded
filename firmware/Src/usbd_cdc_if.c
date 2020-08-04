@@ -269,7 +269,6 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
   RING_put(&usb_rx, Buf, *Len);
-  CDC_Transmit_FS(Buf, *Len);
   return (USBD_OK);
   /* USER CODE END 6 */
 }
