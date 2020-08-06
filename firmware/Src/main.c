@@ -77,8 +77,10 @@ UCAN_AckFrameDef ack_frame = {
   * @brief  The application entry point.
   * @retval int
   */
+volatile static int counter = 1;
 int main(void)
 {
+
   /* USER CODE BEGIN 1 */
   char text[10] = "empty";
   /* USER CODE END 1 */
@@ -133,15 +135,16 @@ int main(void)
 	  }
 
 	  USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-//	  if (hcdc->TxState != 0) //USB_TX not bussy
+//	  if (counter == 1000)
+	  //	  if (hcdc->TxState != 0) //USB_TX not bussy
 	  {
 		  data_ptr = RING_get(&usb_tx);
+		  volatile uint32_t systic = HAL_GetTick();
 		  if (data_ptr != NULL)
 		  {
-			  while (CDC_Transmit_FS(data_ptr, sizeof(ack_frame)) != USBD_OK)
-			  {
+			  while (HAL_GetTick() - systic < 100);
 
-			  }
+			  CDC_Transmit_FS(data_ptr, sizeof(ack_frame));
 		  }
 	  }
 
