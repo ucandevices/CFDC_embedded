@@ -66,9 +66,9 @@ UCAN_AckFrameDef ack_frame = {
 		UCAN_FD_ACK,	// frame_type
 		UCAN_FD_COMMAND_OK, //cmd status
 		{},//FDCAN_ProtocolStatusTypeDef
-		{},//FDCAN_ErrorCountersTypeDef
-		{},//FDCAN_InitTypeDef
-		{2,1,UCAN_CAN_FD,{1,2,3,4,5}} //FDCAN_Device8_DescritionDef,
+		{0x1A,0x2B,0x3C,0x4D},//FDCAN_ErrorCountersTypeDef
+		{0xAABBCCDD,1213,5566,44,55,66,0xAABBCCDD},//FDCAN_InitTypeDef
+		{2,1,UCAN_CAN_FD,{1,2,3,4,5}} //FDCAN_Device_DescritionDef
 };
 
 /* USER CODE END 0 */
@@ -84,7 +84,7 @@ int main(void)
   /* USER CODE BEGIN 1 */
   char text[10] = "empty";
   /* USER CODE END 1 */
-
+  volatile static aaa = sizeof(FunctionalState);
   /* MCU Configuration--------------------------------------------------------*/
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
@@ -128,7 +128,7 @@ int main(void)
 		  if (UCAN_execute_USB_to_CAN_frame(data_ptr) == 0);
 		  {
 			  HAL_FDCAN_GetProtocolStatus(&hfdcan1,&(ack_frame.can_protocol_status));
-			  HAL_FDCAN_GetErrorCounters(&hfdcan1,&(ack_frame.can_error_counters));
+//			  HAL_FDCAN_GetErrorCounters(&hfdcan1,&(ack_frame.can_error_counters));
 		//    memcpy(&ack_frame.can_init_structure,&hfdcan1.Instance,sizeof(hfdcan1.Instance));
 			  RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
 		  }
