@@ -13,7 +13,8 @@
 #include "stm32g4xx_hal_fdcan.h"
 //#include "RING.h"
 
-#define MAX_CAN_FRAME_SIZE (150u)
+
+#define MAX_CAN_FRAME_SIZE (170u)
 #define UCAN_SERIAL_NO_SIZE (8u)
 #define UCAN_FRAME_RX_FIFO_SIZE (16u)
 #define UCAN_FRAME_TX_FIFO_SIZE UCAN_FRAME_RX_FIFO_SIZE
@@ -85,7 +86,7 @@ typedef struct {
 typedef struct {
 	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_TX.*/
 	FDCAN_TxEventFifoTypeDef can_tx_header; /*!< FDCAN Tx event FIFO structure definition @ref FDCAN_TxEventFifoTypeDef.*/
-	uint8_t can_data[MAX_CAN_FRAME_SIZE]; /* Data CAN buffer */
+	uint8_t can_data[64]; /* Data CAN buffer */
 } UCAN_TxFrameDef;
 
 /**
@@ -115,7 +116,7 @@ typedef struct {
 typedef struct {
 	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_GET_STATUS.*/
 	FDCAN_RxHeaderTypeDef can_rx_header; /*!< FDCAN Rx header structure definition @ref FDCAN_RxHeaderTypeDef.*/
-	uint8_t can_data[MAX_CAN_FRAME_SIZE]; /* Data CAN buffer */
+	uint8_t can_data[64]; /* Data CAN buffer */
 	FDCAN_ProtocolStatusTypeDef protocol_status; /* FDCAN Protocol Status structure definition @ref FDCAN_ProtocolStatusTypeDef*/
 	FDCAN_ErrorCountersTypeDef error_counters; /* FDCAN Error Counters structure definition @ref FDCAN_ErrorCountersTypeDef*/
 } UCAN_RxFrameDef;
