@@ -28,13 +28,14 @@ UCAN_AckFrameDef ack_frame = { UCAN_FD_ACK,	// frame_type
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 	UCAN_TxFrameDef* txf = data;
+	UCAN_InitFrameDef* intframe = data;
 	if (data == NULL)
     	return 1;
 
-	switch(data[0])
+	switch(txf->frame_type)
 	{
 		case UCAN_FD_INIT:
-			memcpy(&init_values,&(data[1]) , sizeof(FDCAN_InitTypeDef));
+			memcpy(&init_values,&intframe->can_init , sizeof(FDCAN_InitTypeDef));
 			//UCAN_Init(init_values);
 			HAL_FDCAN_GetProtocolStatus(&hfdcan1,
 					&(ack_frame.can_protocol_status));
