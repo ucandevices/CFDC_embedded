@@ -33,6 +33,7 @@ typedef enum {
 	UCAN_FD_GET_CAN_STATUS, /*!< request status USB->CAN*/
 	UCAN_FD_RX, /*!< new CAN frame received on network. Frame direction CAN->USB*/
 	UCAN_FD_ACK, /*!< gets CAN status from CONVERTER. Also ACK resposne for all frames form USB. Frame direction CAN->USB */
+	UCAN_FD_LAST, /*iterator should be last*/
 
 	FT_ENUM_SIZE_GUARD = 0xFFFFFFFF
 } UCAN_FRAME_TYPE;
@@ -135,5 +136,6 @@ typedef struct {
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data);
 uint8_t UCAN_execute_CAN_to_USB_frame(uint8_t *data, uint32_t len);
+uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame);
 
 #endif /* SRC_UCAN_FD_PROTOCOL_STM32G431_H_ */

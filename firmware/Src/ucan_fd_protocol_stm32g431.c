@@ -25,6 +25,25 @@ UCAN_AckFrameDef ack_frame = { UCAN_FD_ACK,	// frame_type
 		{ 2, 1, UCAN_CAN_FD, { 1, 2, 3, 4, 5 } } //FDCAN_Device_DescritionDef
 };
 
+uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame)
+{
+	static uint32_t sizeof_array[] = {
+			sizeof(UCAN_InitFrameDef), //UCAN_FD_INIT
+			sizeof(UCAN_DeinitFrameDef),//UCAN_FD_DEINIT
+			sizeof(UCAN_TxFrameDef), //UCAN_FD_TX
+			sizeof(UCAN_SaveConfigFrameDef), //UCAN_FD_SAVE_CONFIG
+			sizeof(UCAN_GoToBootladerFrameDef),//UCAN_FD_GO_TO_BOOTLOADER
+			sizeof(UCAN_Get_CAN_Status),//UCAN_FD_GET_CAN_STATUS
+			sizeof(UCAN_RxFrameDef), //UCAN_FD_RX
+			sizeof(UCAN_AckFrameDef) //UCAN_FD_ACK
+	};
+
+	if ((uint32_t)ucan_frame < (uint32_t)UCAN_FD_LAST)
+		return sizeof_array[(uint32_t)ucan_frame];
+	else
+		return 0;
+
+}
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 	UCAN_TxFrameDef* txf = data;
