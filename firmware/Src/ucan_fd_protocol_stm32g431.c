@@ -48,14 +48,18 @@ uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame)
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 	UCAN_TxFrameDef* txf = data;
 	UCAN_InitFrameDef* intframe = data;
+	extern FDCAN_HandleTypeDef hfdcan1;
 	if (data == NULL)
     	return 1;
 
 	switch(txf->frame_type)
 	{
 		case UCAN_FD_INIT:
-			memcpy(&init_values,&intframe->can_init , sizeof(FDCAN_InitTypeDef));
-			//UCAN_Init(init_values);
+			memcpy(&(hfdcan1.Init),&intframe->can_init , sizeof(FDCAN_InitTypeDef));
+			if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK) {
+					Error_Handler();
+				}
+			HAL_FDCAN_Start(&hfdcan1);
 			HAL_FDCAN_GetProtocolStatus(&hfdcan1,
 					&(ack_frame.can_protocol_status));
 			HAL_FDCAN_GetErrorCounters(&hfdcan1,
@@ -70,7 +74,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data){
 			//add ACK to fifo
 		break;
 		case UCAN_FD_TX:
-			if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header), txf->can_data) != HAL_OK)
+			if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header), txf->can_data) == HAL_OK)
 			{
 				//TODO add sth
 				RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
