@@ -13,7 +13,8 @@
 #include "stm32g4xx_hal_fdcan.h"
 //#include "RING.h"
 
-#define MAX_CAN_FRAME_SIZE (80u)
+
+#define MAX_CAN_FRAME_SIZE (170u)
 #define UCAN_SERIAL_NO_SIZE (8u)
 #define UCAN_FRAME_RX_FIFO_SIZE (16u)
 #define UCAN_FRAME_TX_FIFO_SIZE UCAN_FRAME_RX_FIFO_SIZE
@@ -32,21 +33,24 @@ typedef enum {
 	UCAN_FD_GET_CAN_STATUS, /*!< request status USB->CAN*/
 	UCAN_FD_RX, /*!< new CAN frame received on network. Frame direction CAN->USB*/
 	UCAN_FD_ACK, /*!< gets CAN status from CONVERTER. Also ACK resposne for all frames form USB. Frame direction CAN->USB */
+	UCAN_FD_LAST, /*iterator should be last*/
 
-	ENUM_SIZE_GUARD = 0xFFFFFFFF
+	FT_ENUM_SIZE_GUARD = 0xFFFFFFFF
 } UCAN_FRAME_TYPE;
 
 
 typedef enum {
 	UCAN_FD_COMMAND_OK, /*!< command was executed successfully USB->CAN*/
 	UCAN_FD_COMMAND_ERROR, /*!< command was not executed see error code*/
-	UCAN_FD_COMMAND_WRONG_PARAM /*!< wrong param */
+	UCAN_FD_COMMAND_WRONG_PARAM, /*!< wrong param */
+	CS_ENUM_SIZE_GUARD = 0xFFFFFFFF
 } UCAN_FRAME_CMD_STATUS;
 
 typedef enum {
 	UCAN_CAN_FD,
 	UCAN_CAN_HS,
-	UCAN_LIN
+	UCAN_LIN,
+	DT_ENUM_SIZE_GUARD = 0xFFFFFFFF
 } UCAN_DEV_TYPE;
 
 
@@ -82,8 +86,8 @@ typedef struct {
   */
 typedef struct {
 	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_TX.*/
-	FDCAN_TxEventFifoTypeDef can_tx_header; /*!< FDCAN Tx event FIFO structure definition @ref FDCAN_TxEventFifoTypeDef.*/
-	uint8_t can_data[MAX_CAN_FRAME_SIZE]; /* Data CAN buffer */
+	FDCAN_TxHeaderTypeDef can_tx_header; /*!< FDCAN Tx event FIFO structure definition @ref FDCAN_TxHeaderTypeDef.*/
+	uint8_t can_data[64]; /* Data CAN buffer */
 } UCAN_TxFrameDef;
 
 /**
@@ -113,7 +117,7 @@ typedef struct {
 typedef struct {
 	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_GET_STATUS.*/
 	FDCAN_RxHeaderTypeDef can_rx_header; /*!< FDCAN Rx header structure definition @ref FDCAN_RxHeaderTypeDef.*/
-	uint8_t can_data[MAX_CAN_FRAME_SIZE]; /* Data CAN buffer */
+	uint8_t can_data[64]; /* Data CAN buffer */
 	FDCAN_ProtocolStatusTypeDef protocol_status; /* FDCAN Protocol Status structure definition @ref FDCAN_ProtocolStatusTypeDef*/
 	FDCAN_ErrorCountersTypeDef error_counters; /* FDCAN Error Counters structure definition @ref FDCAN_ErrorCountersTypeDef*/
 } UCAN_RxFrameDef;
@@ -132,5 +136,6 @@ typedef struct {
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data);
 uint8_t UCAN_execute_CAN_to_USB_frame(uint8_t *data, uint32_t len);
+uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame);
 
 #endif /* SRC_UCAN_FD_PROTOCOL_STM32G431_H_ */
