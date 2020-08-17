@@ -119,6 +119,31 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+	uint8_t TxData[8];
+	FDCAN_TxHeaderTypeDef TxHeader;
+	  /* Prepare Tx Header */
+	  TxHeader.Identifier = 0x321;
+	  TxHeader.IdType = FDCAN_STANDARD_ID;
+	  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+	  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+	  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+	  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+	  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+	  TxHeader.MessageMarker = 0;
+	while(1) {
+		HAL_Delay(1000);
+		/* Set the data to be transmitted */
+		TxData[0] = 1;
+		TxData[1] = 0xAD;
+		TxData[7] = 0x36;
+		/* Start the Transmission process */
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
+		{
+		  /* Transmission request Error */
+		  Error_Handler();
+		}
+	}
 	while (1) {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
 		FDCAN_RX_FIFO0);
