@@ -255,46 +255,50 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t *pbuf, uint16_t length) {
  */
 static int8_t CDC_Receive_FS(uint8_t *Buf, uint32_t *Len) {
 	/* USER CODE BEGIN 6 */
-	uint32_t len = *Len;
+	volatile static uint32_t usb_packet_len = 0;
 	static uint32_t frame_size = 0;
-	UCAN_InitFrameDef *dummy_frame = (UCAN_InitFrameDef*)Buf;
+	UCAN_InitFrameDef *dummy_frame = (UCAN_InitFrameDef*)UserRxBufferFS;
 	static uint32_t buff_offset = 0;
 	static uint8_t* buff_start = NULL;
+	volatile static uint8_t* buff_dbg = 0;
+
+//	buff_dbg = Buf;
+	usb_packet_len = *Len;
 
 	if (buff_offset == 0)
 	{
 		frame_size = UCAN_get_frame_size(dummy_frame->frame_type);
-		if ((frame_size == 0) || (frame_size < len))
+		if ((frame_size == 0) || (frame_size < usb_packet_len))
 		{
 			buff_offset = 0; // wrong data
 		} else
 		{
-			if (frame_size == len) {
-				RING_put(&usb_rx, Buf, frame_size);
+			if (frame_size == usb_packet_len) {
+				RING_put(&usb_rx, UserRxBufferFS, frame_size);
 				buff_offset = 0;
 			}
-			if (frame_size > len) {
-				buff_offset = len;
-				buff_start = Buf;
+			if (frame_size > usb_packet_len) {
+				buff_offset = usb_packet_len;
+				buff_start = UserRxBufferFS;
 			}
 		}
 	} else
 	{
-		if (frame_size == (buff_offset + len)) // last packet rx
+		if (frame_size == (buff_offset + usb_packet_len)) // last packet rx
 		{
 			RING_put(&usb_rx, buff_start, frame_size);
 			buff_offset = 0;
 		} else
 		{
-			buff_offset += len;
-			if (buff_offset > 300) // to long frame error, shold be max of UCAN_get_frame_size
+			buff_offset += usb_packet_len;
+			if (buff_offset > 200) // to long frame error, shold be max of UCAN_get_frame_size
 				buff_offset = 0;
 		}
 	}
 
-	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[buff_offset]);
+	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &(UserRxBufferFS[buff_offset]));
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+//	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 	return (USBD_OK);
 

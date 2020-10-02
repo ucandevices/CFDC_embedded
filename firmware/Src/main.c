@@ -118,6 +118,7 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
+//	while (1){;}
 	while (1) {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
 		FDCAN_RX_FIFO0);
@@ -125,19 +126,16 @@ int main(void) {
 
 		static Ring_item *data_ptr;
 		data_ptr = RING_get(&usb_rx);
-		if (data_ptr != NULL) {
+		if (data_ptr->data != NULL) {
 			FDCAN_InitTypeDef init_values;
 			if (UCAN_execute_USB_to_CAN_frame(data_ptr->data) == 0)
 				;
 		}
 
-		USBD_CDC_HandleTypeDef *hcdc =
-				(USBD_CDC_HandleTypeDef*) hUsbDeviceFS.pClassData;
-
 		data_ptr = RING_get(&usb_tx);
 		volatile uint32_t systic = HAL_GetTick();
 		if (data_ptr->len != 0) {
-			while (HAL_GetTick() - systic < 100)
+			while (HAL_GetTick() - systic < 5)
 				;
 
 			CDC_Transmit_FS(data_ptr->data, data_ptr->len);
