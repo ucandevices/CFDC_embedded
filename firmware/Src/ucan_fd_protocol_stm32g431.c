@@ -14,6 +14,7 @@ static FDCAN_InitTypeDef init_values;
 extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_type usb_rx;
 extern Ring_type usb_tx;
+extern uint8_t gotoboot_flag;
 
 UCAN_AckFrameDef ack_frame = { UCAN_FD_ACK,	// frame_type
 		UCAN_FD_COMMAND_OK, //cmd status
@@ -82,8 +83,8 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 	case UCAN_FD_SAVE_CONFIG:
 		break;
 	case UCAN_FD_GO_TO_BOOTLOADER:
-		//todo: send ack,
-		jump_to_boot();
+		RING_put(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
+		gotoboot_flag = 1;
 
 		break;
 	case UCAN_FD_GET_CAN_STATUS:

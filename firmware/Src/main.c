@@ -50,6 +50,7 @@ FDCAN_HandleTypeDef hfdcan1;
 Ring_type usb_rx;
 Ring_type usb_tx;
 static volatile int i = 0;
+uint8_t gotoboot_flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -139,6 +140,13 @@ int main(void) {
 				;
 
 			CDC_Transmit_FS(data_ptr->data, data_ptr->len);
+
+			if (gotoboot_flag == 1)
+			{
+				jump_to_boot();
+			}
+
+
 		}
 
 		if (rx_fill >= 1) {
