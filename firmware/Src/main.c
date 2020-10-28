@@ -119,7 +119,38 @@ int main(void) {
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
-//	while (1){;}
+//	while (1){
+//
+//		static uint8_t TxData[8];
+//		static FDCAN_TxHeaderTypeDef TxHeader;
+//			  /* Prepare Tx Header */
+//			  TxHeader.Identifier = 0x321;
+//			  TxHeader.IdType = FDCAN_STANDARD_ID;
+//			  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+//			  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+//			  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+//			  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+//			  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+//			  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+//			  TxHeader.MessageMarker = 0;
+//
+//			  while(1) {
+//			  		HAL_Delay(1000);
+//			  		/* Set the data to be transmitted */
+//			  		TxData[0] = 1;
+//			  		TxData[1] = 0xAD;
+//			  		TxData[7] = 0x36;
+//			  		/* Start the Transmission process */
+//			  		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
+//			  		{
+//			  		  /* Transmission request Error */
+//			  		  Error_Handler();
+//			  		}
+//
+//					volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
+//					FDCAN_RX_FIFO0);
+//			  }
+//	}
 	while (1) {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
 		FDCAN_RX_FIFO0);
@@ -156,6 +187,7 @@ int main(void) {
 					&(can_rx_frame.can_rx_header), can_rx_frame.can_data)
 					== HAL_OK) {
 
+				HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 				i++;
 
 				RING_put(&usb_tx, &can_rx_frame, sizeof(can_rx_frame));
@@ -235,12 +267,12 @@ void MX_FDCAN1_Init(void) {
 	hfdcan1.Instance = FDCAN1;
 	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
 	hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
-	hfdcan1.Init.Mode = FDCAN_MODE_EXTERNAL_LOOPBACK;
-	hfdcan1.Init.AutoRetransmission = DISABLE;
+	hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+	hfdcan1.Init.AutoRetransmission = ENABLE;
 	hfdcan1.Init.TransmitPause = DISABLE;
 	hfdcan1.Init.ProtocolException = DISABLE;
-	hfdcan1.Init.NominalPrescaler = 1;
-	hfdcan1.Init.NominalSyncJumpWidth = 1;
+	hfdcan1.Init.NominalPrescaler = 90;
+	hfdcan1.Init.NominalSyncJumpWidth = 128;
 	hfdcan1.Init.NominalTimeSeg1 = 13;
 	hfdcan1.Init.NominalTimeSeg2 = 2;
 	hfdcan1.Init.DataPrescaler = 1;
@@ -271,6 +303,7 @@ static void MX_GPIO_Init(void) {
 	__HAL_RCC_GPIOF_CLK_ENABLE();
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 	__HAL_RCC_GPIOB_CLK_ENABLE();
+	__HAL_RCC_GPIOC_CLK_ENABLE();
 
 	/*Configure GPIO pin Output Level */
 	HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
@@ -282,6 +315,9 @@ static void MX_GPIO_Init(void) {
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
 
+	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
+	GPIO_InitStruct.Pin = GPIO_PIN_13;
+	HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 }
 
 /* USER CODE BEGIN 4 */
