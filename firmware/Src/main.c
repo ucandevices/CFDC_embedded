@@ -81,7 +81,7 @@ volatile static int counter = 1;
 int main(void) {
 
 	/* USER CODE BEGIN 1 */
-
+	TurnOffBoot0();
 	/* USER CODE END 1 */
 	/* MCU Configuration--------------------------------------------------------*/
 
@@ -174,7 +174,7 @@ int main(void) {
 
 			if (gotoboot_flag == 1)
 			{
-				jump_to_boot();
+				RebootToBootloader();
 			}
 
 
