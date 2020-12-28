@@ -74,7 +74,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 	case UCAN_FD_TX:
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header),
 				txf->can_data) == HAL_OK) {
-			//TODO add sth
+			update_ACK();
 			RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
 		} else {
 			//TODO add sth

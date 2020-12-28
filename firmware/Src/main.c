@@ -81,7 +81,6 @@ volatile static int counter = 1;
 int main(void) {
 
 	/* USER CODE BEGIN 1 */
-	TurnOffBoot0();
 	/* USER CODE END 1 */
 	/* MCU Configuration--------------------------------------------------------*/
 
@@ -96,7 +95,7 @@ int main(void) {
 	SystemClock_Config();
 
 	/* USER CODE BEGIN SysInit */
-
+	TurnOffBoot0();
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
