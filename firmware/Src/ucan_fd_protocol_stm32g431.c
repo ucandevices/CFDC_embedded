@@ -15,6 +15,7 @@ extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_type usb_rx;
 extern Ring_type usb_tx;
 extern uint8_t gotoboot_flag;
+extern uint32_t status_sys_tick;
 
 UCAN_AckFrameDef ack_frame = { UCAN_FD_ACK,	// frame_type
 		UCAN_FD_COMMAND_OK, //cmd status
@@ -56,6 +57,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 	if (data == NULL)
 		return 1;
 
+	status_sys_tick = HAL_GetTick();
 	switch (txf->frame_type) {
 	case UCAN_FD_INIT:
 		memcpy(&(hfdcan1.Init), &intframe->can_init, sizeof(FDCAN_InitTypeDef));

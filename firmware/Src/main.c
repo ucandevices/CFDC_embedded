@@ -51,6 +51,7 @@ Ring_type usb_rx;
 Ring_type usb_tx;
 static volatile int i = 0;
 uint8_t gotoboot_flag = 0;
+uint32_t status_sys_tick;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -78,9 +79,12 @@ UCAN_RxFrameDef can_rx_frame = { UCAN_FD_RX,	// frame_type
  * @retval int
  */
 volatile static int counter = 1;
+extern void TurnOffBoot0();
 int main(void) {
 
 	/* USER CODE BEGIN 1 */
+	TurnOffBoot0();
+	TurnOffBoot0();
 	/* USER CODE END 1 */
 	/* MCU Configuration--------------------------------------------------------*/
 
@@ -95,7 +99,7 @@ int main(void) {
 	SystemClock_Config();
 
 	/* USER CODE BEGIN SysInit */
-	TurnOffBoot0();
+
 	/* USER CODE END SysInit */
 
 	/* Initialize all configured peripherals */
@@ -165,19 +169,26 @@ int main(void) {
 
 		data_ptr = RING_get(&usb_tx);
 		volatile uint32_t systic = HAL_GetTick();
-		if (data_ptr->len != 0) {
-			while (HAL_GetTick() - systic < 5)
-				;
+		if (data_ptr->len != 0)
+		{
 
 			CDC_Transmit_FS(data_ptr->data, data_ptr->len);
 
 			if (gotoboot_flag == 1)
 			{
+				for (uint8_t i = 0; i < 5; i++) {
+					HAL_Delay(i * 200);
+					HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+				}
 				RebootToBootloader();
 			}
 
 
 		}
+
+		/* reset device if no status frames */
+		if ((HAL_GetTick() - status_sys_tick) > 5000)
+			HAL_NVIC_SystemReset();
 
 		if (rx_fill >= 1) {
 			static FDCAN_RxHeaderTypeDef rx_h;

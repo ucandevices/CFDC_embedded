@@ -10,11 +10,11 @@ typedef void (*pFunction)(void);
 //call this at any time to initiate a reboot into bootloader
 pFunction JumpToApplication;
 
+FLASH_OBProgramInitTypeDef OBParam;
+
 void RebootToBootloader() {
 	extern uint8_t gotoboot_flag;
 	gotoboot_flag = 0;
-
-	FLASH_OBProgramInitTypeDef OBParam;
 
 	HAL_FLASHEx_OBGetConfig(&OBParam);
 	OBParam.OptionType = OPTIONBYTE_USER;
@@ -43,34 +43,18 @@ void RebootToBootloader() {
 
 //turns off BOOT0 pin
 void TurnOffBoot0() {
-	static FLASH_OBProgramInitTypeDef OBParam;
-	static FLASH_EraseInitTypeDef  erase;
 	HAL_FLASHEx_OBGetConfig(&OBParam);
 
-//		if ((OBParam.USERConfig & FLASH_OPTR_nBOOT0) == 0)
-	{
+	OBParam.OptionType = OPTIONBYTE_USER;
+	OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
+	OBParam.USERConfig = OB_BOOT0_FROM_PIN | OB_nBOOT0_SET | OB_BOOT1_SYSTEM;
 
-		OBParam.OptionType = OPTIONBYTE_USER;
+	HAL_FLASH_Unlock();
+	HAL_FLASH_OB_Unlock();
 
-		OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
-		OBParam.USERConfig = OB_BOOT0_FROM_OB | OB_nBOOT0_SET | OB_BOOT1_SYSTEM;
-
-//		erase.TypeErase = FLASH_TYPEERASE_PAGES;
-//		erase.Banks = FLASH_BANK_BOTH;
-//		erase.NbPages = 1;
-
-		HAL_FLASH_Unlock();
-		HAL_FLASH_OB_Unlock();
-
-//		HAL_FLASHEx_Erase(erase, PageError)
-		HAL_FLASHEx_OBProgram(&OBParam);
-		HAL_FLASH_OB_Lock();
-		HAL_FLASH_Lock();
-		HAL_FLASH_OB_Launch();
-
-//        HAL_FLASHEx_OBGetConfig(&OBParam);
-
-//        HAL_NVIC_SystemReset();
-	}
+	HAL_FLASHEx_OBProgram(&OBParam);
+	HAL_FLASH_OB_Lock();
+	HAL_FLASH_Lock();
+	HAL_FLASH_OB_Launch();
 }
 
