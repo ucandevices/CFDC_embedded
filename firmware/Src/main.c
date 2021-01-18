@@ -27,6 +27,7 @@
 #include "ucan_fd_protocol_stm32g431.h"
 #include "RING.h"
 #include "usbd_cdc.h"
+#include "dwt_delay.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -92,7 +93,7 @@ int main(void) {
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
-
+	 DWT_Init();
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
@@ -171,7 +172,7 @@ int main(void) {
 		volatile uint32_t systic = HAL_GetTick();
 		if (data_ptr->len != 0)
 		{
-
+			DWT_Delay(300); /*300 us delay workaround for short frames  (@TODO fix this and test against 1 byte CAN data frame )*/
 			CDC_Transmit_FS(data_ptr->data, data_ptr->len);
 
 			if (gotoboot_flag == 1)
@@ -201,7 +202,6 @@ int main(void) {
 				i++;
 
 				RING_put(&usb_tx, &can_rx_frame, sizeof(can_rx_frame));
-
 			}
 		}
 		/* USER CODE END WHILE */

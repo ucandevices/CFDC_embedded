@@ -43,18 +43,24 @@ void RebootToBootloader() {
 
 //turns off BOOT0 pin
 void TurnOffBoot0() {
+	static int scnd = 0;
+
 	HAL_FLASHEx_OBGetConfig(&OBParam);
 
-	OBParam.OptionType = OPTIONBYTE_USER;
-	OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
-	OBParam.USERConfig = OB_BOOT0_FROM_PIN | OB_nBOOT0_SET | OB_BOOT1_SYSTEM;
+	if ((scnd) || ((OBParam.USERConfig & OB_USER_nBOOT0) == OB_nBOOT0_RESET))
+	{
+		scnd = 1;
+		OBParam.OptionType = OPTIONBYTE_USER;
+		OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
+		OBParam.USERConfig = OB_BOOT0_FROM_PIN | OB_nBOOT0_SET | OB_BOOT1_SYSTEM;
 
-	HAL_FLASH_Unlock();
-	HAL_FLASH_OB_Unlock();
+		HAL_FLASH_Unlock();
+		HAL_FLASH_OB_Unlock();
 
-	HAL_FLASHEx_OBProgram(&OBParam);
-	HAL_FLASH_OB_Lock();
-	HAL_FLASH_Lock();
-	HAL_FLASH_OB_Launch();
+		HAL_FLASHEx_OBProgram(&OBParam);
+		HAL_FLASH_OB_Lock();
+		HAL_FLASH_Lock();
+		HAL_FLASH_OB_Launch();
+	}
 }
 
