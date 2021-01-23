@@ -75,4 +75,29 @@ void DWT_Delay(uint32_t us) // microseconds
     while (DWT->CYCCNT - startTick < delayTicks);
 }
 
+static uint8_t timerOn = 0;
+static uint32_t timerValue = 0;
+static uint32_t timerStartTick = 0;
+
+void DWT_us_Timer_Start(uint32_t us)
+{
+	if (timerOn == 0)
+	{
+		timerStartTick = DWT->CYCCNT;
+		timerValue = us * (SystemCoreClock/1000000);
+		timerOn = 1;
+	}
+}
+
+uint8_t DWT_us_Timer_Done(void)
+{
+	if (timerOn == 1)
+	{
+		if(DWT->CYCCNT - timerStartTick < timerValue)
+			return 0;
+		timerOn = 0;
+	}
+	return 1;
+}
+
 #endif

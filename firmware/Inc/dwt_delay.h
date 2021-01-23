@@ -30,4 +30,8 @@
 void DWT_Init(void);
 void DWT_Delay(uint32_t us);
 
+
+void DWT_us_Timer_Start(uint32_t us);
+uint8_t DWT_us_Timer_Done(void);
+
 #endif /* INC_DWT_DELAY_DWT_DELAY_H_ */

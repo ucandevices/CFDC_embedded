@@ -93,7 +93,7 @@ int main(void) {
 	HAL_Init();
 
 	/* USER CODE BEGIN Init */
-	 DWT_Init();
+	DWT_Init();
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
@@ -168,24 +168,26 @@ int main(void) {
 				;
 		}
 
-		data_ptr = RING_get(&usb_tx);
-		volatile uint32_t systic = HAL_GetTick();
-		if (data_ptr->len != 0)
-		{
-			DWT_Delay(300); /*300 us delay workaround for short frames  (@TODO fix this and test against 1 byte CAN data frame )*/
-			CDC_Transmit_FS(data_ptr->data, data_ptr->len);
+//		if (RING_is_empty(&usb_tx) == 0) {
+			//last delay
+			volatile uint32_t systic = HAL_GetTick();
+//				DWT_Delay(300); /*300 us delay workaround for short frames  (@TODO fix this and test against 1 byte CAN data frame )*/
+				if (DWT_us_Timer_Done() == 1) /*non blocking workaround*/
+				{
+					data_ptr = RING_get(&usb_tx);
+					if (data_ptr->len != 0) {
+						CDC_Transmit_FS(data_ptr->data, data_ptr->len);
 
-			if (gotoboot_flag == 1)
-			{
-				for (uint8_t i = 0; i < 5; i++) {
-					HAL_Delay(i * 200);
-					HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+						if (gotoboot_flag == 1) {
+							for (uint8_t i = 0; i < 5; i++) {
+								HAL_Delay(i * 200);
+								HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+							}
+							RebootToBootloader();
+						}
+					}
 				}
-				RebootToBootloader();
-			}
-
-
-		}
+//		}
 
 		/* reset device if no status frames */
 		if ((HAL_GetTick() - status_sys_tick) > 5000)
@@ -200,7 +202,7 @@ int main(void) {
 
 				HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 				i++;
-
+				DWT_us_Timer_Start(300);// non blocking workaround for 300 usDelay
 				RING_put(&usb_tx, &can_rx_frame, sizeof(can_rx_frame));
 			}
 		}
