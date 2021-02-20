@@ -46,7 +46,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 FDCAN_HandleTypeDef hfdcan1;
-
+WWDG_HandleTypeDef hwwdg;
 /* USER CODE BEGIN PV */
 Ring_type usb_rx;
 Ring_type usb_tx;
@@ -58,6 +58,7 @@ uint32_t status_sys_tick;
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_WWDG_Init(void);
 void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
 extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -94,11 +95,12 @@ int main(void) {
 
 	/* USER CODE BEGIN Init */
 	DWT_Init();
+
 	/* USER CODE END Init */
 
 	/* Configure the system clock */
 	SystemClock_Config();
-
+	MX_WWDG_Init();
 	/* USER CODE BEGIN SysInit */
 
 	/* USER CODE END SysInit */
@@ -159,8 +161,10 @@ int main(void) {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
 		FDCAN_RX_FIFO0);
 		volatile uint32_t tx_fill = HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1);
-
 		static Ring_item *data_ptr;
+
+		HAL_WWDG_Refresh(&hwwdg);
+
 		data_ptr = RING_get(&usb_rx);
 		if (data_ptr->data != NULL) {
 			FDCAN_InitTypeDef init_values;
@@ -176,8 +180,8 @@ int main(void) {
 				{
 					data_ptr = RING_get(&usb_tx);
 					if (data_ptr->len != 0) {
-						CDC_Transmit_FS(data_ptr->data, data_ptr->len);
-
+						while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
+						status_sys_tick = HAL_GetTick();
 						if (gotoboot_flag == 1) {
 							for (uint8_t i = 0; i < 5; i++) {
 								HAL_Delay(i * 200);
@@ -202,6 +206,7 @@ int main(void) {
 
 				HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 				i++;
+				// can_rx_frame.can_rx_header.Identifier = i; // debug frame sequence 
 				DWT_us_Timer_Start(300);// non blocking workaround for 300 usDelay
 				RING_put(&usb_tx, &can_rx_frame, sizeof(can_rx_frame));
 			}
@@ -345,6 +350,31 @@ void Error_Handler(void) {
 	/* User can add his own implementation to report the HAL error return state */
 
 	/* USER CODE END Error_Handler_Debug */
+}
+
+static void MX_WWDG_Init(void)
+{
+
+  /* USER CODE BEGIN WWDG_Init 0 */
+
+  /* USER CODE END WWDG_Init 0 */
+
+  /* USER CODE BEGIN WWDG_Init 1 */
+
+  /* USER CODE END WWDG_Init 1 */
+  hwwdg.Instance = WWDG;
+  hwwdg.Init.Prescaler = WWDG_PRESCALER_1;
+  hwwdg.Init.Window = 64;
+  hwwdg.Init.Counter = 64;
+  hwwdg.Init.EWIMode = WWDG_EWI_DISABLE;
+  if (HAL_WWDG_Init(&hwwdg) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN WWDG_Init 2 */
+
+  /* USER CODE END WWDG_Init 2 */
+
 }
 
 #ifdef  USE_FULL_ASSERT
