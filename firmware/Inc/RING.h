@@ -18,7 +18,7 @@ typedef enum{
 
 typedef struct {
 	uint8_t *data;
-	uint8_t len;
+	size_t len;
 } Ring_item;
 
 typedef struct {
@@ -35,5 +35,6 @@ uint8_t RING_is_empty(Ring_type *ring);
 uint8_t RING_is_full(Ring_type *ring);
 void RING_put(Ring_type *ring, uint8_t *data, uint32_t len);
 Ring_item* RING_get(Ring_type *ring);
+uint8_t RING_fill(Ring_type *ring);
 
 #endif /* STM32G4XX_HAL_DRIVER_INC_RING_H_ */

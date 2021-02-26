@@ -19,6 +19,19 @@ uint8_t RING_is_full(Ring_type *ring) {
     return (RING_IS_FULL == ring->status);
 }
 
+uint8_t RING_fill(Ring_type *ring)
+{
+	if (ring->head > ring->tail)
+	{
+		return (ring->head - ring->tail);
+	} else
+	{
+		return (ring->head + UCAN_FRAME_RX_FIFO_SIZE - ring->tail);
+	}
+
+
+}
+
 void RING_put(Ring_type *ring, uint8_t *data, uint32_t len) {
     if(RING_is_full(ring))
     	return;

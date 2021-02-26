@@ -114,12 +114,18 @@ typedef struct {
 /**
   * @brief UCAN_FD_RX frame structure
   */
+#define UCAN_RX_FRAME_DEF_CAN_COUNT_MAX 10u
+
 typedef struct {
-	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_GET_STATUS.*/
 	FDCAN_RxHeaderTypeDef can_rx_header; /*!< FDCAN Rx header structure definition @ref FDCAN_RxHeaderTypeDef.*/
 	uint8_t can_data[64]; /* Data CAN buffer */
-	FDCAN_ProtocolStatusTypeDef protocol_status; /* FDCAN Protocol Status structure definition @ref FDCAN_ProtocolStatusTypeDef*/
-	FDCAN_ErrorCountersTypeDef error_counters; /* FDCAN Error Counters structure definition @ref FDCAN_ErrorCountersTypeDef*/
+	uint32_t packed_flags_and_error_counters;
+} ucan_rx_can_def;
+
+typedef struct {
+	UCAN_FRAME_TYPE frame_type; /*!< Frame type is @ref UCAN_FD_RX.*/
+	uint32_t can_frame_count;
+	ucan_rx_can_def can_frame[UCAN_RX_FRAME_DEF_CAN_COUNT_MAX];
 } UCAN_RxFrameDef;
 
 /**

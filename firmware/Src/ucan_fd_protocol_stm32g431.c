@@ -62,13 +62,13 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 	status_sys_tick = HAL_GetTick();
 	switch (txf->frame_type) {
 	case UCAN_FD_INIT:
-		memcpy(&(hfdcan1.Init), &intframe->can_init, sizeof(FDCAN_InitTypeDef));
+		memcpy((void*)&(hfdcan1.Init), (const void*)&intframe->can_init, sizeof(FDCAN_InitTypeDef));
 		if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK) {
 			Error_Handler();
 		}
 		HAL_FDCAN_Start(&hfdcan1);
 		update_ACK();
-		RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+		RING_put(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 
 		break;
 	case UCAN_FD_DEINIT:
