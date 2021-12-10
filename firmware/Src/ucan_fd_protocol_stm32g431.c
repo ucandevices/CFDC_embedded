@@ -79,7 +79,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header),
 				txf->can_data) == HAL_OK) {
 			update_ACK();
-			RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+//			RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
 		} else {
 			//TODO add sth
 		}
@@ -93,7 +93,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 		break;
 	case UCAN_FD_GET_CAN_STATUS:
 		update_ACK();
-		RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+//		RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
 		break;
 	case UCAN_FD_RX:
 		//not used
