@@ -7,15 +7,16 @@
 
 #include "ucan_fd_protocol_stm32g431.h"
 #include "stm32g4xx_hal_fdcan.h"
-#include "jump_to_boot.h"
-#include "RING.h"
+#include "bootloader.h"
+#include "ring.h"
 #include "dwt_delay.h"
+#include <string.h>
 
 
-static FDCAN_InitTypeDef init_values;
+// static FDCAN_InitTypeDef init_values;
 extern FDCAN_HandleTypeDef hfdcan1;
-extern Ring_type usb_rx;
-extern Ring_type usb_tx;
+extern Ring_buffer_type usb_rx;
+extern Ring_buffer_type usb_tx;
 extern uint8_t gotoboot_flag;
 extern uint32_t status_sys_tick;
 
@@ -53,8 +54,8 @@ static void update_ACK(void) {
 }
 
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
-	UCAN_TxFrameDef *txf = data;
-	UCAN_InitFrameDef *intframe = data;
+	UCAN_TxFrameDef *txf = (UCAN_TxFrameDef*)data;
+	UCAN_InitFrameDef *intframe = (UCAN_InitFrameDef*)data;
 	extern FDCAN_HandleTypeDef hfdcan1;
 	if (data == NULL)
 		return 1;
@@ -68,7 +69,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 		}
 		HAL_FDCAN_Start(&hfdcan1);
 		update_ACK();
-		RING_put(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
+		ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 
 		break;
 	case UCAN_FD_DEINIT:
@@ -79,7 +80,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header),
 				txf->can_data) == HAL_OK) {
 			update_ACK();
-			RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+			ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 		} else {
 			//TODO add sth
 		}
@@ -87,13 +88,13 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) {
 	case UCAN_FD_SAVE_CONFIG:
 		break;
 	case UCAN_FD_GO_TO_BOOTLOADER:
-		RING_put(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
+		ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 		gotoboot_flag = 1;
 
 		break;
 	case UCAN_FD_GET_CAN_STATUS:
 		update_ACK();
-		RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+		ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 		break;
 	case UCAN_FD_RX:
 		//not used
