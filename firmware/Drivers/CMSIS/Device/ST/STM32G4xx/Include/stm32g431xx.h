@@ -9937,6 +9937,7 @@ typedef struct
 #define SYSCFG_SWPR_PAGE9_Pos          (9U)
 #define SYSCFG_SWPR_PAGE9_Msk          (0x1UL << SYSCFG_SWPR_PAGE9_Pos)       /*!< 0x00000200 */
 #define SYSCFG_SWPR_PAGE9              (SYSCFG_SWPR_PAGE9_Msk)                /*!< CCMSRAM  Write protection page 9 */
+
 /******************  Bit definition for SYSCFG_SKR register  ****************/
 #define SYSCFG_SKR_KEY_Pos              (0U)
 #define SYSCFG_SKR_KEY_Msk              (0xFFUL << SYSCFG_SKR_KEY_Pos)         /*!< 0x000000FF */

@@ -34,6 +34,7 @@
       (#) The upper HAL HCD/PCD driver will call the right routines for its internal processes.
 
   @endverbatim
+
   ******************************************************************************
   */
 
@@ -345,6 +346,7 @@ HAL_StatusTypeDef USB_DeactivateEndpoint(USB_TypeDef *USBx, USB_EPTypeDef *ep)
       PCD_CLEAR_RX_DTOG(USBx, ep->num);
       PCD_CLEAR_TX_DTOG(USBx, ep->num);
       PCD_RX_DTOG(USBx, ep->num);
+
       /* Configure DISABLE status for the Endpoint*/
       PCD_SET_EP_TX_STATUS(USBx, ep->num, USB_EP_TX_DIS);
       PCD_SET_EP_RX_STATUS(USBx, ep->num, USB_EP_RX_DIS);
@@ -724,6 +726,7 @@ HAL_StatusTypeDef USB_ActivateRemoteWakeup(USB_TypeDef *USBx)
 HAL_StatusTypeDef USB_DeActivateRemoteWakeup(USB_TypeDef *USBx)
 {
   USBx->CNTR &= (uint16_t)(~USB_CNTR_RESUME);
+
   return HAL_OK;
 }
 

@@ -202,11 +202,13 @@ HAL_StatusTypeDef HAL_PCD_Init(PCD_HandleTypeDef *hpcd)
 
   hpcd->USB_Address = 0U;
   hpcd->State = HAL_PCD_STATE_READY;
+
   /* Activate LPM */
   if (hpcd->Init.lpm_enable == 1U)
   {
     (void)HAL_PCDEx_ActivateLPM(hpcd);
   }
+
   return HAL_OK;
 }
 
@@ -1344,6 +1346,7 @@ HAL_StatusTypeDef HAL_PCD_DevConnect(PCD_HandleTypeDef *hpcd)
   __HAL_LOCK(hpcd);
   (void)USB_DevConnect(hpcd->Instance);
   __HAL_UNLOCK(hpcd);
+
   return HAL_OK;
 }
 
@@ -1357,6 +1360,7 @@ HAL_StatusTypeDef HAL_PCD_DevDisconnect(PCD_HandleTypeDef *hpcd)
   __HAL_LOCK(hpcd);
   (void)USB_DevDisconnect(hpcd->Instance);
   __HAL_UNLOCK(hpcd);
+
   return HAL_OK;
 }
 
@@ -1372,6 +1376,7 @@ HAL_StatusTypeDef HAL_PCD_SetAddress(PCD_HandleTypeDef *hpcd, uint8_t address)
   hpcd->USB_Address = address;
   (void)USB_SetDevAddress(hpcd->Instance, address);
   __HAL_UNLOCK(hpcd);
+
   return HAL_OK;
 }
 /**
@@ -1560,6 +1565,7 @@ HAL_StatusTypeDef HAL_PCD_EP_SetStall(PCD_HandleTypeDef *hpcd, uint8_t ep_addr)
   __HAL_LOCK(hpcd);
 
   (void)USB_EPSetStall(hpcd->Instance, ep);
+
   __HAL_UNLOCK(hpcd);
 
   return HAL_OK;
@@ -1697,6 +1703,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
   while ((hpcd->Instance->ISTR & USB_ISTR_CTR) != 0U)
   {
     wIstr = hpcd->Instance->ISTR;
+
     /* extract highest priority endpoint number */
     epindex = (uint8_t)(wIstr & USB_ISTR_EP_ID);
 
@@ -1943,6 +1950,7 @@ static HAL_StatusTypeDef PCD_EP_ISR_Handler(PCD_HandleTypeDef *hpcd)
       }
     }
   }
+
   return HAL_OK;
 }
 

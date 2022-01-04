@@ -1779,6 +1779,7 @@ __NO_RETURN __STATIC_INLINE void __NVIC_SystemReset(void)
 
 #endif
 
+
 /* ##########################  FPU functions  #################################### */
 /**
   \ingroup  CMSIS_Core_FunctionInterface

@@ -516,6 +516,7 @@ HAL_StatusTypeDef HAL_TIM_Base_Stop_IT(TIM_HandleTypeDef *htim)
 {
   /* Check the parameters */
   assert_param(IS_TIM_INSTANCE(htim->Instance));
+
   /* Disable the TIM Update interrupt */
   __HAL_TIM_DISABLE_IT(htim, TIM_IT_UPDATE);
 
@@ -4498,6 +4499,7 @@ HAL_StatusTypeDef HAL_TIM_OnePulse_ConfigChannel(TIM_HandleTypeDef *htim,  TIM_O
         TIM_OC1_SetConfig(htim->Instance, &temp1);
         break;
       }
+
       case TIM_CHANNEL_2:
       {
         assert_param(IS_TIM_CC2_INSTANCE(htim->Instance));
@@ -4713,6 +4715,7 @@ HAL_StatusTypeDef HAL_TIM_DMABurst_MultiWriteStart(TIM_HandleTypeDef *htim, uint
   {
     /* nothing to do */
   }
+
   switch (BurstRequestSrc)
   {
     case TIM_DMA_UPDATE:
@@ -4867,6 +4870,7 @@ HAL_StatusTypeDef HAL_TIM_DMABurst_MultiWriteStart(TIM_HandleTypeDef *htim, uint
 HAL_StatusTypeDef HAL_TIM_DMABurst_WriteStop(TIM_HandleTypeDef *htim, uint32_t BurstRequestSrc)
 {
   HAL_StatusTypeDef status = HAL_OK;
+
   /* Check the parameters */
   assert_param(IS_TIM_DMA_SOURCE(BurstRequestSrc));
 
@@ -5220,6 +5224,7 @@ HAL_StatusTypeDef HAL_TIM_DMABurst_MultiReadStart(TIM_HandleTypeDef *htim, uint3
 HAL_StatusTypeDef HAL_TIM_DMABurst_ReadStop(TIM_HandleTypeDef *htim, uint32_t BurstRequestSrc)
 {
   HAL_StatusTypeDef status = HAL_OK;
+
   /* Check the parameters */
   assert_param(IS_TIM_DMA_SOURCE(BurstRequestSrc));
 
@@ -6741,10 +6746,12 @@ HAL_TIM_ActiveChannel HAL_TIM_GetActiveChannel(TIM_HandleTypeDef *htim)
 HAL_TIM_ChannelStateTypeDef HAL_TIM_GetChannelState(TIM_HandleTypeDef *htim,  uint32_t Channel)
 {
   HAL_TIM_ChannelStateTypeDef channel_state;
+
   /* Check the parameters */
   assert_param(IS_TIM_CCX_INSTANCE(htim->Instance, Channel));
 
   channel_state = TIM_CHANNEL_STATE_GET(htim, Channel);
+
   return channel_state;
 }
 
@@ -6757,6 +6764,7 @@ HAL_TIM_DMABurstStateTypeDef HAL_TIM_DMABurstState(TIM_HandleTypeDef *htim)
 {
   /* Check the parameters */
   assert_param(IS_TIM_DMABURST_INSTANCE(htim->Instance));
+
   return htim->DMABurstState;
 }
 
@@ -6827,6 +6835,7 @@ static void TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma)
   if (hdma == htim->hdma[TIM_DMA_ID_CC1])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_1;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_1, HAL_TIM_CHANNEL_STATE_READY);
@@ -6835,6 +6844,7 @@ static void TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC2])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_2;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_2, HAL_TIM_CHANNEL_STATE_READY);
@@ -6843,6 +6853,7 @@ static void TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC3])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_3;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_3, HAL_TIM_CHANNEL_STATE_READY);
@@ -6851,6 +6862,7 @@ static void TIM_DMADelayPulseCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC4])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_4;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_4, HAL_TIM_CHANNEL_STATE_READY);
@@ -6921,6 +6933,7 @@ void TIM_DMACaptureCplt(DMA_HandleTypeDef *hdma)
   if (hdma == htim->hdma[TIM_DMA_ID_CC1])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_1;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_1, HAL_TIM_CHANNEL_STATE_READY);
@@ -6930,6 +6943,7 @@ void TIM_DMACaptureCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC2])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_2;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_2, HAL_TIM_CHANNEL_STATE_READY);
@@ -6939,6 +6953,7 @@ void TIM_DMACaptureCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC3])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_3;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_3, HAL_TIM_CHANNEL_STATE_READY);
@@ -6948,6 +6963,7 @@ void TIM_DMACaptureCplt(DMA_HandleTypeDef *hdma)
   else if (hdma == htim->hdma[TIM_DMA_ID_CC4])
   {
     htim->Channel = HAL_TIM_ACTIVE_CHANNEL_4;
+
     if (hdma->Init.Mode == DMA_NORMAL)
     {
       TIM_CHANNEL_STATE_SET(htim, TIM_CHANNEL_4, HAL_TIM_CHANNEL_STATE_READY);
