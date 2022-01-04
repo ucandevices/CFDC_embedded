@@ -12,7 +12,8 @@ pFunction JumpToApplication;
 
 FLASH_OBProgramInitTypeDef OBParam;
 
-void RebootToBootloader() {
+void reboot_into_bootloader() 
+{
 	extern uint8_t gotoboot_flag;
 	gotoboot_flag = 0;
 
@@ -42,7 +43,8 @@ void RebootToBootloader() {
 }
 
 //turns off BOOT0 pin
-void TurnOffBoot0() {
+void turn_off_bootloader() 
+{
 	static int scnd = 0;
 
 	HAL_FLASHEx_OBGetConfig(&OBParam);

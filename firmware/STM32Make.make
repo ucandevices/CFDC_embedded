@@ -60,10 +60,10 @@ Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
 Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
-Src/RING.c \
 Src/dwt_delay.c \
 Src/jump_to_boot.c \
 Src/main.c \
+Src/ring.c \
 Src/stm32g4xx_hal_msp.c \
 Src/stm32g4xx_it.c \
 Src/syscalls.c \

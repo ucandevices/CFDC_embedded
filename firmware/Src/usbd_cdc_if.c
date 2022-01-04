@@ -24,7 +24,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "main.h"
-#include "RING.h"
+#include "ring.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -33,8 +33,8 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-extern Ring_type usb_rx;
-extern Ring_type usb_tx;
+extern Ring_buffer_type usb_rx;
+extern Ring_buffer_type usb_tx;
 /* USER CODE END PV */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -272,7 +272,6 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	UCAN_InitFrameDef *dummy_frame = (UCAN_InitFrameDef*)UserRxBufferFS;
 	static uint32_t buff_offset = 0;
 	static uint8_t* buff_start = NULL;
-	volatile static uint8_t* buff_dbg = 0;
 
 //	buff_dbg = Buf;
 	usb_packet_len = *Len;
@@ -286,7 +285,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 		} else
 		{
 			if (frame_size == usb_packet_len) {
-				RING_put(&usb_rx, UserRxBufferFS, frame_size);
+				ring_buffer_push(&usb_rx, UserRxBufferFS, frame_size);
 				buff_offset = 0;
 			}
 			if (frame_size > usb_packet_len) {
@@ -298,7 +297,7 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 	{
 		if (frame_size == (buff_offset + usb_packet_len)) // last packet rx
 		{
-			RING_put(&usb_rx, buff_start, frame_size);
+			ring_buffer_push(&usb_rx, buff_start, frame_size);
 			buff_offset = 0;
 		} else
 		{

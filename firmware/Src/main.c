@@ -24,9 +24,10 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ucan_fd_protocol_stm32g431.h"
-#include "RING.h"
-#include "usbd_cdc.h"
+#include "ring.h"
+#include "usbd_cdc_if.h"
 #include "dwt_delay.h"
+#include "jump_to_boot.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,8 +50,8 @@ FDCAN_HandleTypeDef hfdcan1;
 WWDG_HandleTypeDef hwwdg;
 
 /* USER CODE BEGIN PV */
-Ring_type usb_rx;
-Ring_type usb_tx;
+Ring_buffer_type usb_rx;
+Ring_buffer_type usb_tx;
 static volatile int i = 0;
 uint8_t gotoboot_flag = 0;
 uint32_t status_sys_tick;
@@ -68,11 +69,12 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-UCAN_RxFrameDef can_rx_frame = { UCAN_FD_RX,	// frame_type
-		0, //frame_count
-		{}, //can_frame
-		0, // packed_flags_and_error_counters
-		};
+UCAN_RxFrameDef can_rx_frame = 
+{ 
+  UCAN_FD_RX,	// frame_type
+  0, //frame_count
+  {}, //can_frame
+};
 
 /* USER CODE END 0 */
 
@@ -112,8 +114,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 	HAL_FDCAN_Start(&hfdcan1);
 
-	RING_init(&usb_rx);
-	RING_init(&usb_tx);
+	ring_buffer_init(&usb_rx);
+	ring_buffer_init(&usb_tx);
 
 	for (uint8_t i = 0; i < 10; i++) {
 		HAL_Delay(i * 10);
@@ -159,21 +161,18 @@ int main(void)
 	while (1) {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
 		FDCAN_RX_FIFO0);
-		volatile uint32_t tx_fill = HAL_FDCAN_GetTxFifoFreeLevel(&hfdcan1);
-		static Ring_item *data_ptr;
+		static Ring_item_type *data_ptr;
 
 		HAL_WWDG_Refresh(&hwwdg);
 
-		data_ptr = RING_get(&usb_rx);
+		data_ptr = ring_buffer_get(&usb_rx);
 		if (data_ptr->data != NULL) {
-			FDCAN_InitTypeDef init_values;
 			if (UCAN_execute_USB_to_CAN_frame(data_ptr->data) == 0)
 				;
 		}
 
 //		if (RING_is_empty(&usb_tx) == 0) {
 			//last delay
-			volatile uint32_t systic = HAL_GetTick();
 //				DWT_Delay(300); /*300 us delay workaround for short frames  (@TODO fix this and test against 1 byte CAN data frame )*/
 
 //			if (DWT_us_Timer_Done() == 1) /*non blocking workaround*/
@@ -186,7 +185,7 @@ int main(void)
 							data_ptr->len = sizeof(UCAN_RxFrameDef);
 						} else  /* handle rest of frames is no CAN transactions */
 						{
-							data_ptr = RING_get(&usb_tx);
+							data_ptr = ring_buffer_get(&usb_tx);
 						}
 						if (data_ptr->len != 0) {
 							while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
@@ -198,7 +197,7 @@ int main(void)
 									HAL_Delay(i * 200);
 									HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 								}
-								RebootToBootloader();
+								reboot_into_bootloader();
 							}
 						}
 					}
