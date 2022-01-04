@@ -24,9 +24,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ucan_fd_protocol_stm32g431.h"
-#include "RING.h"
+#include "ring.h"
 #include "usbd_cdc.h"
 #include "dwt_delay.h"
+#include "usbd_cdc_if.h"
+#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -186,7 +188,7 @@ int main(void)
 							data_ptr->len = sizeof(UCAN_RxFrameDef);
 						} else  /* handle rest of frames is no CAN transactions */
 						{
-							data_ptr = RING_get(&usb_tx);
+							data_ptr = ring_buffer_get(&usb_tx);
 						}
 						if (data_ptr->len != 0) {
 							while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
@@ -198,7 +200,7 @@ int main(void)
 									HAL_Delay(i * 200);
 									HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 								}
-								RebootToBootloader();
+								reboot_into_bootloader();
 							}
 						}
 					}

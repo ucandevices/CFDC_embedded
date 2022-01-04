@@ -557,7 +557,6 @@ extern "C" {
 #define HAL_SYSCFG_EnableIOAnalogSwitchVDD        HAL_SYSCFG_EnableIOSwitchVDD
 #define HAL_SYSCFG_DisableIOAnalogSwitchVDD       HAL_SYSCFG_DisableIOSwitchVDD
 #endif /* STM32G4 */
-
 /**
   * @}
   */
@@ -1060,7 +1059,6 @@ extern "C" {
 /**
   * @}
   */
-
 /** @defgroup HAL_RTC_Aliased_Defines HAL RTC Aliased Defines maintained for legacy purpose
   * @{
   */

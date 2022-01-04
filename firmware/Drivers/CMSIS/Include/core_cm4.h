@@ -1947,7 +1947,6 @@ __NO_RETURN __STATIC_INLINE void __NVIC_SystemReset(void)
 
 /*@} end of CMSIS_Core_NVICFunctions */
 
-
 /* ##########################  MPU functions  #################################### */
 
 #if defined (__MPU_PRESENT) && (__MPU_PRESENT == 1U)
