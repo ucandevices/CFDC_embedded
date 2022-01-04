@@ -67,28 +67,26 @@ extern void SystemClock_Config(void);
 *******************************************************************************/
 /* MSP Init */
 
-#if (USE_HAL_PCD_REGISTER_CALLBACK == 1U)
+#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
 static void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
 #else
 void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACK */
+#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
   if(pcdHandle->Instance==USB)
   {
   /* USER CODE BEGIN USB_MspInit 0 */
 
   /* USER CODE END USB_MspInit 0 */
-
-    __HAL_RCC_GPIOA_CLK_ENABLE();
-    /**USB GPIO Configuration
-    PA11     ------> USB_DM
-    PA12     ------> USB_DP
-    */
-    GPIO_InitStruct.Pin = GPIO_PIN_11|GPIO_PIN_12;
-    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+  /** Initializes the peripherals clocks
+  */
+    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+    PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
+    {
+      Error_Handler();
+    }
 
     /* Peripheral clock enable */
     __HAL_RCC_USB_CLK_ENABLE();
@@ -102,11 +100,11 @@ void HAL_PCD_MspInit(PCD_HandleTypeDef* pcdHandle)
   }
 }
 
-#if (USE_HAL_PCD_REGISTER_CALLBACK == 1U)
+#if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
 static void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
 #else
 void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
-#endif /* USE_HAL_PCD_REGISTER_CALLBACK */
+#endif /* USE_HAL_PCD_REGISTER_CALLBACKS */
 {
   if(pcdHandle->Instance==USB)
   {
@@ -115,12 +113,6 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef* pcdHandle)
   /* USER CODE END USB_MspDeInit 0 */
     /* Peripheral clock disable */
     __HAL_RCC_USB_CLK_DISABLE();
-
-    /**USB GPIO Configuration
-    PA11     ------> USB_DM
-    PA12     ------> USB_DP
-    */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_11|GPIO_PIN_12);
 
     /* Peripheral interrupt Deinit*/
     HAL_NVIC_DisableIRQ(USB_LP_IRQn);
@@ -648,7 +640,7 @@ USBD_StatusTypeDef USBD_LL_SetUSBAddress(USBD_HandleTypeDef *pdev, uint8_t dev_a
   * @param  size: Data size
   * @retval USBD status
   */
-USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint16_t size)
+USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint32_t size)
 {
   HAL_StatusTypeDef hal_status = HAL_OK;
   USBD_StatusTypeDef usb_status = USBD_OK;
@@ -668,7 +660,7 @@ USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, uint8_t ep_addr, u
   * @param  size: Data size
   * @retval USBD status
   */
-USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint16_t size)
+USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_addr, uint8_t *pbuf, uint32_t size)
 {
   HAL_StatusTypeDef hal_status = HAL_OK;
   USBD_StatusTypeDef usb_status = USBD_OK;
@@ -681,10 +673,10 @@ USBD_StatusTypeDef USBD_LL_PrepareReceive(USBD_HandleTypeDef *pdev, uint8_t ep_a
 }
 
 /**
-  * @brief  Returns the last transfered packet size.
+  * @brief  Returns the last transferred packet size.
   * @param  pdev: Device handle
   * @param  ep_addr: Endpoint number
-  * @retval Recived Data Size
+  * @retval Received Data Size
   */
 uint32_t USBD_LL_GetRxDataSize(USBD_HandleTypeDef *pdev, uint8_t ep_addr)
 {
@@ -775,7 +767,7 @@ static void SystemClockConfig_Resume(void)
 /* USER CODE END 5 */
 
 /**
-  * @brief  Retuns the USB status depending on the HAL status:
+  * @brief  Returns the USB status depending on the HAL status:
   * @param  hal_status: HAL status
   * @retval USB status
   */
@@ -803,4 +795,3 @@ USBD_StatusTypeDef USBD_Get_USB_Status(HAL_StatusTypeDef hal_status)
   }
   return usb_status;
 }
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
