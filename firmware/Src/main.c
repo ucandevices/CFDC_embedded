@@ -85,8 +85,7 @@ UCAN_RxFrameDef can_rx_frame =
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-//	TurnOffBoot0();
-//	TurnOffBoot0();
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -117,7 +116,8 @@ int main(void)
 	ring_buffer_init(&usb_rx);
 	ring_buffer_init(&usb_tx);
 
-	for (uint8_t i = 0; i < 10; i++) {
+	for (uint8_t i = 0; i < 10; i++) 
+  {
 		HAL_Delay(i * 10);
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	}
@@ -126,89 +126,62 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//	while (1){
-//
-//		static uint8_t TxData[8];
-//		static FDCAN_TxHeaderTypeDef TxHeader;
-//			  /* Prepare Tx Header */
-//			  TxHeader.Identifier = 0x321;
-//			  TxHeader.IdType = FDCAN_STANDARD_ID;
-//			  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-//			  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-//			  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-//			  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-//			  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-//			  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-//			  TxHeader.MessageMarker = 0;
-//
-//			  while(1) {
-//			  		HAL_Delay(1000);
-//			  		/* Set the data to be transmitted */
-//			  		TxData[0] = 1;
-//			  		TxData[1] = 0xAD;
-//			  		TxData[7] = 0x36;
-//			  		/* Start the Transmission process */
-//			  		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
-//			  		{
-//			  		  /* Transmission request Error */
-//			  		  Error_Handler();
-//			  		}
-//
-//					volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
-//					FDCAN_RX_FIFO0);
-//			  }
-//	}
-	while (1) {
-		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
-		FDCAN_RX_FIFO0);
+	while (1) 
+  {
+		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
 		static Ring_item_type *data_ptr;
 
 		HAL_WWDG_Refresh(&hwwdg);
 
 		data_ptr = ring_buffer_get(&usb_rx);
-		if (data_ptr->data != NULL) {
-			if (UCAN_execute_USB_to_CAN_frame(data_ptr->data) == 0)
-				;
+
+		if (data_ptr->data != NULL) 
+    {
+			UCAN_execute_USB_to_CAN_frame(data_ptr->data);
 		}
 
-//		if (RING_is_empty(&usb_tx) == 0) {
-			//last delay
-//				DWT_Delay(300); /*300 us delay workaround for short frames  (@TODO fix this and test against 1 byte CAN data frame )*/
+    if (CDC_Is_Busy() != USBD_BUSY)
+    {
+      if (can_rx_frame.can_frame_count > 0)
+      {
+        data_ptr->data = (uint8_t*)&can_rx_frame;
+        data_ptr->len = sizeof(UCAN_RxFrameDef);
+      }
+      else  /* handle rest of frames is no CAN transactions */
+      {
+        data_ptr = ring_buffer_get(&usb_tx);
+      }
 
-//			if (DWT_us_Timer_Done() == 1) /*non blocking workaround*/
-				{
-					if (CDC_Is_Busy() != USBD_BUSY)
-					{
-						if (can_rx_frame.can_frame_count > 0)
-						{
-							data_ptr->data = (uint8_t*)&can_rx_frame;
-							data_ptr->len = sizeof(UCAN_RxFrameDef);
-						} else  /* handle rest of frames is no CAN transactions */
-						{
-							data_ptr = ring_buffer_get(&usb_tx);
-						}
-						if (data_ptr->len != 0) {
-							while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
-							if (data_ptr->len == sizeof(UCAN_RxFrameDef))
-								can_rx_frame.can_frame_count = 0;
-							status_sys_tick = HAL_GetTick();
-							if (gotoboot_flag == 1) {
-								for (uint8_t i = 0; i < 5; i++) {
-									HAL_Delay(i * 200);
-									HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-								}
-								reboot_into_bootloader();
-							}
-						}
-					}
-				}
-//		}
+      if (data_ptr->len != 0) 
+      {
+        while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
+
+        if (data_ptr->len == sizeof(UCAN_RxFrameDef))
+        {
+          can_rx_frame.can_frame_count = 0;
+        }
+
+        status_sys_tick = HAL_GetTick();
+
+        if (gotoboot_flag == 1) 
+        {
+          for (uint8_t i = 0; i < 5; i++) 
+          {
+            HAL_Delay(i * 200);
+            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+          }
+          reboot_into_bootloader();
+        }
+
+      }
+    }
 
 		/* reset device if no status frames */
 //		if ((HAL_GetTick() - status_sys_tick) > 5000)
 //			HAL_NVIC_SystemReset();
 
-		if (rx_fill >= 1) {
+		if (rx_fill >= 1) 
+    {
 			if (can_rx_frame.can_frame_count < UCAN_RX_FRAME_DEF_CAN_COUNT_MAX)
 			{
 
@@ -222,8 +195,6 @@ int main(void)
 				}
 			}
 		}
-
-
 
     /* USER CODE END WHILE */
 
