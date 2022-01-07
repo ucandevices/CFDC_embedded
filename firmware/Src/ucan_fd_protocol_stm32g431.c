@@ -78,16 +78,55 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 	{
 		case UCAN_FD_INIT:
 		{
-			memcpy((void*)&(hfdcan1.Init), (const void*)&intframe->can_init, sizeof(FDCAN_InitTypeDef));
+			// HAL_FDCAN_Stop(&hfdcan1);
+			// HAL_FDCAN_DeInit(&hfdcan1);
 
-			if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK) 
-			{
-				Error_Handler();
-			}
-			
-			HAL_FDCAN_Start(&hfdcan1);
-			update_ACK();
-			ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
+			// hfdcan1.Instance = FDCAN1;
+			// hfdcan1.Init.ClockDivider = intframe->can_init.ClockDivider;
+			// hfdcan1.Init.FrameFormat = intframe->can_init.FrameFormat;
+			// hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+			// hfdcan1.Init.AutoRetransmission = DISABLE;
+			// hfdcan1.Init.TransmitPause = DISABLE;
+			// hfdcan1.Init.ProtocolException = DISABLE;
+			// hfdcan1.Init.NominalPrescaler = intframe->can_init.NominalPrescaler;
+			// hfdcan1.Init.NominalSyncJumpWidth = intframe->can_init.NominalSyncJumpWidth;
+			// hfdcan1.Init.NominalTimeSeg1 = intframe->can_init.NominalTimeSeg1;
+			// hfdcan1.Init.NominalTimeSeg2 = intframe->can_init.NominalTimeSeg1;
+			// hfdcan1.Init.DataPrescaler = intframe->can_init.DataPrescaler;
+			// hfdcan1.Init.DataSyncJumpWidth = intframe->can_init.DataSyncJumpWidth;
+			// hfdcan1.Init.DataTimeSeg1 = intframe->can_init.DataTimeSeg1;
+			// hfdcan1.Init.DataTimeSeg2 = intframe->can_init.DataTimeSeg2;
+			// hfdcan1.Init.StdFiltersNbr = 0;
+			// hfdcan1.Init.ExtFiltersNbr = 0;
+			// hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+
+			// hfdcan1.Instance = FDCAN1;
+			// hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
+			// hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
+			// hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+			// hfdcan1.Init.AutoRetransmission = DISABLE;
+			// hfdcan1.Init.TransmitPause = DISABLE;
+			// hfdcan1.Init.ProtocolException = DISABLE;
+			// hfdcan1.Init.NominalPrescaler = 1;
+			// hfdcan1.Init.NominalSyncJumpWidth = 1;
+			// hfdcan1.Init.NominalTimeSeg1 = 2;
+			// hfdcan1.Init.NominalTimeSeg2 = 2;
+			// hfdcan1.Init.DataPrescaler = 1;
+			// hfdcan1.Init.DataSyncJumpWidth = 1;
+			// hfdcan1.Init.DataTimeSeg1 = 1;
+			// hfdcan1.Init.DataTimeSeg2 = 1;
+			// hfdcan1.Init.StdFiltersNbr = 0;
+			// hfdcan1.Init.ExtFiltersNbr = 0;
+			// hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+
+			// // if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
+			// // {
+			// // 	Error_Handler();
+			// // }
+
+			// HAL_FDCAN_Start(&hfdcan1);
+			// update_ACK();
+			// ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
 
 			break;
 		}
@@ -104,7 +143,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 			if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &(txf->can_tx_header), txf->can_data) == HAL_OK) 
 			{
 				update_ACK();
-				// RING_put(&usb_tx, &ack_frame, sizeof(ack_frame));
+				// ring_buffer_push(&usb_tx, &ack_frame, sizeof(ack_frame));
 			} 
 			else
 			{

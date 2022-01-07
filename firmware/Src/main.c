@@ -115,17 +115,47 @@ int main(void)
 
 	ring_buffer_init(&usb_rx);
 	ring_buffer_init(&usb_tx);
-
-	for (uint8_t i = 0; i < 10; i++) 
-  {
-		HAL_Delay(i * 10);
-		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-	}
+  HAL_GPIO_WritePin(CAN_STBY_Pin, CAN_STBY_GPIO_Port, GPIO_PIN_RESET);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+  	while (1){
+
+		static uint8_t TxData[8];
+		static FDCAN_TxHeaderTypeDef TxHeader;
+			  /* Prepare Tx Header */
+			  TxHeader.Identifier = 0x321;
+			  TxHeader.IdType = FDCAN_STANDARD_ID;
+			  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+			  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+			  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+			  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+			  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+			  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+			  TxHeader.MessageMarker = 0;
+
+			  while(1) {
+			  		HAL_Delay(1000);
+			  		/* Set the data to be transmitted */
+			  		TxData[0] = 1;
+			  		TxData[1] = 0xAD;
+			  		TxData[7] = 0x36;
+			  		/* Start the Transmission process */
+			  		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
+			  		{
+			  		  /* Transmission request Error */
+			  		  Error_Handler();
+			  		}
+
+					volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
+					FDCAN_RX_FIFO0);
+			  }
+    }
+
+
 	while (1) 
   {
 		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
@@ -330,12 +360,23 @@ static void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(CAN_STBY_GPIO_Port, CAN_STBY_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : CAN_STBY_Pin */
+  GPIO_InitStruct.Pin = CAN_STBY_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(CAN_STBY_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;

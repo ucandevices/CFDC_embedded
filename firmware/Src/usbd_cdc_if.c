@@ -309,10 +309,57 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 
 	USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &(UserRxBufferFS[buff_offset]));
 	USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-//	HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	// HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 
 	return (USBD_OK);
 
+
+  // static uint32_t pending_data_len = 0;
+  // pending_data_len += *Len;
+  // uint8_t frame_type = UserRxBufferFS[0];
+
+  // switch (frame_type)
+  // {
+
+  //   case UCAN_FD_INIT:
+  //   {
+  //     uint32_t frame_len = sizeof(UCAN_InitFrameDef);
+  //     if (pending_data_len >= frame_len)
+  //     {
+  //       UCAN_InitFrameDef *new_frame = (UCAN_InitFrameDef*)UserRxBufferFS;
+  //       ring_buffer_push(&usb_rx, UserRxBufferFS, frame_len);
+  //       pending_data_len -= frame_len;
+  //     }
+  //     else
+  //     {
+  //       __asm("bkpt;");
+  //     }
+  //     break;
+  //   }
+
+  //   case UCAN_FD_TX:
+  //   {
+  //     uint32_t frame_len = sizeof(UCAN_TxFrameDef);
+  //     if (pending_data_len >= frame_len)
+  //     {
+  //       UCAN_TxFrameDef *new_frame = (UCAN_TxFrameDef*)UserRxBufferFS;
+  //       ring_buffer_push(&usb_rx, UserRxBufferFS, frame_len);
+  //       pending_data_len -= frame_len;
+  //     }
+  //     else
+  //     {
+  //       // USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+  //     }
+  //     break;
+  //   }
+  
+  //   default:
+  //   {
+  //     __asm("bkpt;");
+  //     break;
+  //   }
+
+  // }
   /* USER CODE END 6 */
 }
 
