@@ -17,7 +17,7 @@ extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_buffer_type usb_rx;
 extern Ring_buffer_type usb_tx;
 extern uint8_t gotoboot_flag;
-extern uint32_t status_sys_tick;
+// extern uint32_t status_sys_tick;
 
 UCAN_AckFrameDef ack_frame = 
 { 
@@ -72,7 +72,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 		return 1;
 	}
 
-	status_sys_tick = HAL_GetTick();
+	// status_sys_tick = HAL_GetTick();
 
 	switch (txf->frame_type) 
 	{

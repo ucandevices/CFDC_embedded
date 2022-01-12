@@ -46,7 +46,6 @@
 
 /* Private variables ---------------------------------------------------------*/
 FDCAN_HandleTypeDef hfdcan1;
-
 WWDG_HandleTypeDef hwwdg;
 
 /* USER CODE BEGIN PV */
@@ -54,7 +53,7 @@ Ring_buffer_type usb_rx;
 Ring_buffer_type usb_tx;
 static volatile int i = 0;
 uint8_t gotoboot_flag = 0;
-uint32_t status_sys_tick;
+// uint32_t status_sys_tick;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,51 +108,50 @@ int main(void)
   MX_GPIO_Init();
   MX_USB_Device_Init();
   MX_FDCAN1_Init();
-  MX_WWDG_Init();
+  // MX_WWDG_Init();
   /* USER CODE BEGIN 2 */
 	HAL_FDCAN_Start(&hfdcan1);
 
 	ring_buffer_init(&usb_rx);
 	ring_buffer_init(&usb_tx);
-  HAL_GPIO_WritePin(CAN_STBY_Pin, CAN_STBY_GPIO_Port, GPIO_PIN_RESET);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  	while (1){
+  // static uint8_t TxData[8];
+  // static FDCAN_TxHeaderTypeDef TxHeader;
 
-		static uint8_t TxData[8];
-		static FDCAN_TxHeaderTypeDef TxHeader;
-			  /* Prepare Tx Header */
-			  TxHeader.Identifier = 0x321;
-			  TxHeader.IdType = FDCAN_STANDARD_ID;
-			  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-			  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-			  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-			  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-			  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-			  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-			  TxHeader.MessageMarker = 0;
+  // /* Prepare Tx Header */
+  // TxHeader.Identifier = 0x321;
+  // TxHeader.IdType = FDCAN_STANDARD_ID;
+  // TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+  // TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+  // TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  // TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+  // TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+  // TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+  // TxHeader.MessageMarker = 0;
 
-			  while(1) {
-			  		HAL_Delay(1000);
-			  		/* Set the data to be transmitted */
-			  		TxData[0] = 1;
-			  		TxData[1] = 0xAD;
-			  		TxData[7] = 0x36;
-			  		/* Start the Transmission process */
-			  		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
-			  		{
-			  		  /* Transmission request Error */
-			  		  Error_Handler();
-			  		}
+  // while(1) 
+  // {
+  //   /* Set the data to be transmitted */
+  //   TxData[0] = 1;
+  //   TxData[1] = 0xAD;
+  //   TxData[7] = 0x36;
 
-					volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1,
-					FDCAN_RX_FIFO0);
-			  }
-    }
+  //   /* Start the Transmission process */
+  //   if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
+  //   {
+  //     /* Transmission request Error */
+  //     Error_Handler();
+  //   }
+
+  //   volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
+  //   HAL_Delay(1000);
+  // }
+
 
 
 	while (1) 
@@ -191,17 +189,17 @@ int main(void)
           can_rx_frame.can_frame_count = 0;
         }
 
-        status_sys_tick = HAL_GetTick();
+        // status_sys_tick = HAL_GetTick();
 
-        if (gotoboot_flag == 1) 
-        {
-          for (uint8_t i = 0; i < 5; i++) 
-          {
-            HAL_Delay(i * 200);
-            HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-          }
-          reboot_into_bootloader();
-        }
+        // if (gotoboot_flag == 1) 
+        // {
+        //   for (uint8_t i = 0; i < 5; i++) 
+        //   {
+        //     HAL_Delay(i * 200);
+        //     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+        //   }
+        //   reboot_into_bootloader();
+        // }
 
       }
     }
@@ -296,12 +294,12 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
-  hfdcan1.Init.AutoRetransmission = DISABLE;
+  hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 1;
-  hfdcan1.Init.NominalSyncJumpWidth = 1;
-  hfdcan1.Init.NominalTimeSeg1 = 2;
+  hfdcan1.Init.NominalPrescaler = 90;
+  hfdcan1.Init.NominalSyncJumpWidth = 128;
+  hfdcan1.Init.NominalTimeSeg1 = 13;
   hfdcan1.Init.NominalTimeSeg2 = 2;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;
