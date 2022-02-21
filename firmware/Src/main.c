@@ -51,9 +51,6 @@ WWDG_HandleTypeDef hwwdg;
 /* USER CODE BEGIN PV */
 Ring_buffer_type usb_rx;
 Ring_buffer_type usb_tx;
-static volatile int i = 0;
-uint8_t gotoboot_flag = 0;
-// uint32_t status_sys_tick;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -110,56 +107,26 @@ int main(void)
   MX_FDCAN1_Init();
   // MX_WWDG_Init();
   /* USER CODE BEGIN 2 */
+
 	HAL_FDCAN_Start(&hfdcan1);
 
 	ring_buffer_init(&usb_rx);
 	ring_buffer_init(&usb_tx);
 
+  HAL_StatusTypeDef rx_status;
+  FDCAN_RxHeaderTypeDef* rx_header;
+  uint8_t* rx_data;
+  uint32_t rx_fifo_level = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  // static uint8_t TxData[8];
-  // static FDCAN_TxHeaderTypeDef TxHeader;
-
-  // /* Prepare Tx Header */
-  // TxHeader.Identifier = 0x321;
-  // TxHeader.IdType = FDCAN_STANDARD_ID;
-  // TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-  // TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-  // TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-  // TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-  // TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-  // TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-  // TxHeader.MessageMarker = 0;
-
-  // while(1) 
-  // {
-  //   /* Set the data to be transmitted */
-  //   TxData[0] = 1;
-  //   TxData[1] = 0xAD;
-  //   TxData[7] = 0x36;
-
-  //   /* Start the Transmission process */
-  //   if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) != HAL_OK)
-  //   {
-  //     /* Transmission request Error */
-  //     Error_Handler();
-  //   }
-
-  //   volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
-  //   HAL_Delay(1000);
-  // }
-
-
-
 	while (1) 
   {
-		volatile uint32_t rx_fill = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
 		static Ring_item_type *data_ptr;
 
-		HAL_WWDG_Refresh(&hwwdg);
+		// HAL_WWDG_Refresh(&hwwdg);
 
 		data_ptr = ring_buffer_get(&usb_rx);
 
@@ -189,37 +156,23 @@ int main(void)
           can_rx_frame.can_frame_count = 0;
         }
 
-        // status_sys_tick = HAL_GetTick();
-
-        // if (gotoboot_flag == 1) 
-        // {
-        //   for (uint8_t i = 0; i < 5; i++) 
-        //   {
-        //     HAL_Delay(i * 200);
-        //     HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-        //   }
-        //   reboot_into_bootloader();
-        // }
-
       }
     }
 
-		/* reset device if no status frames */
-//		if ((HAL_GetTick() - status_sys_tick) > 5000)
-//			HAL_NVIC_SystemReset();
+    rx_fifo_level = HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0);
 
-		if (rx_fill >= 1) 
+		if (rx_fifo_level > 0) 
     {
 			if (can_rx_frame.can_frame_count < UCAN_RX_FRAME_DEF_CAN_COUNT_MAX)
 			{
+        rx_header = &(can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_rx_header);
+        rx_data = can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_data;
+        rx_status = HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, rx_header, rx_data);
 
-				if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0,
-						&(can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_rx_header),
-						can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_data) == HAL_OK)
+				if (rx_status == HAL_OK)
 				{
 						HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-						i++;
-						can_rx_frame.can_frame_count ++;
+						can_rx_frame.can_frame_count++;
 				}
 			}
 		}
@@ -294,12 +247,12 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
   hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
-  hfdcan1.Init.AutoRetransmission = ENABLE;
+  hfdcan1.Init.AutoRetransmission = DISABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 90;
-  hfdcan1.Init.NominalSyncJumpWidth = 128;
-  hfdcan1.Init.NominalTimeSeg1 = 13;
+  hfdcan1.Init.NominalPrescaler = 1;
+  hfdcan1.Init.NominalSyncJumpWidth = 1;
+  hfdcan1.Init.NominalTimeSeg1 = 2;
   hfdcan1.Init.NominalTimeSeg2 = 2;
   hfdcan1.Init.DataPrescaler = 1;
   hfdcan1.Init.DataSyncJumpWidth = 1;

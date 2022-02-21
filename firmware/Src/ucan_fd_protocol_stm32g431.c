@@ -16,18 +16,7 @@
 extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_buffer_type usb_rx;
 extern Ring_buffer_type usb_tx;
-extern uint8_t gotoboot_flag;
-// extern uint32_t status_sys_tick;
 
-// UCAN_AckFrameDef ack_frame = 
-// { 
-// 	UCAN_FD_ACK,																						// frame_type
-// 	UCAN_FD_COMMAND_OK, 																		//cmd status
-// 	{ }, 																										//FDCAN_ProtocolStatusTypeDef
-// 	{ 0x1A, 0x2B, 0x3C, 0x4D }, 														//FDCAN_ErrorCountersTypeDef
-// 	{ 0xAABBCCDD, 1213, 5566, 44, 55, 66, 0xAABBCCDD }, 		//FDCAN_InitTypeDef
-// 	{ 2, 1, UCAN_CAN_FD, { 1, 2, 3, 4, 5 } } 								//FDCAN_Device_DescritionDef
-// };
 
 uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame) 
 {
@@ -53,14 +42,6 @@ uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame)
 	}
 }
 
-// static void update_ACK(void) 
-// {
-// 	HAL_FDCAN_GetProtocolStatus(&hfdcan1, &(ack_frame.can_protocol_status));
-// 	HAL_FDCAN_GetErrorCounters(&hfdcan1, &(ack_frame.can_error_counters));
-// 	//				memcpy(&ack_frame.can_init_structure, &hfdcan1.Instance,
-// 	//						sizeof(hfdcan1.Instance));
-// }
-
 uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data) 
 {
 	UCAN_TxFrameDef *txf = (UCAN_TxFrameDef*)data;
@@ -77,9 +58,8 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 		case UCAN_FD_INIT:
 		{
 			HAL_FDCAN_Stop(&hfdcan1);
-
 			memcpy((void*)&(hfdcan1.Init), (const void*)&intframe->can_init, sizeof(FDCAN_InitTypeDef));
-
+			
 			if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK) 
 			{
 				Error_Handler();
@@ -107,9 +87,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 
 		case UCAN_FD_GO_TO_BOOTLOADER:
 		{
-			// ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
-			// gotoboot_flag = 1;
-
+			reboot_into_bootloader();
 			break;
 		}
 
