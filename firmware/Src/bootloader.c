@@ -3,73 +3,50 @@
 #include "stm32g4xx_hal_flash.h"
 #include "usb_device.h"
 
-#define BOOTLOADER_ADDR 0x1FFF0000
-#define APP_ADDR        0x08000000
-
-typedef void (*pFunction)(void);
-//call this at any time to initiate a reboot into bootloader
-pFunction JumpToApplication;
-
-FLASH_OBProgramInitTypeDef OBParam;
-
-
 /*
 * @brief Initiate a reboot into bootloader
 */
 void reboot_into_bootloader() 
-{
-	extern uint8_t gotoboot_flag;
-	gotoboot_flag = 0;
+{    
+	__HAL_RCC_USB_CONFIG(0);
 
-	HAL_FLASHEx_OBGetConfig(&OBParam);
-	OBParam.OptionType = OPTIONBYTE_USER;
-	OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
-	OBParam.USERConfig = OB_BOOT0_FROM_OB | OB_nBOOT0_RESET | OB_BOOT1_SYSTEM;
+	uint32_t i=0;
+	void (*SysMemBootJump)(void);
 
-	HAL_FLASH_Unlock();
-	HAL_FLASH_OB_Unlock();
-	HAL_FLASHEx_OBProgram(&OBParam);
-	HAL_FLASH_OB_Lock();
-	HAL_FLASH_OB_Launch();
+	/* Set the address of the entry point to bootloader */
+	volatile uint32_t BootAddr = 0x1FFF0000;
 
-	HAL_RCC_DeInit();
-	HAL_DeInit();
-
-	uint32_t JumpAddress = *(__IO uint32_t*) (BOOTLOADER_ADDR + 4);
-	JumpToApplication = (pFunction) JumpAddress;
-
+	/* Disable all interrupts */
 	__disable_irq();
-	__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();
-	__set_MSP(*(__IO uint32_t*) BOOTLOADER_ADDR);
-	JumpToApplication();
 
-	HAL_NVIC_SystemReset();
-}
+	/* Disable Systick timer */
+	SysTick->CTRL = 0;
 
+	/* Set the clock to the default state */
+	HAL_RCC_DeInit();
 
-/*
-* @brief Turns off BOOT0 pin
-*/
-void turn_off_bootloader() 
-{
-	static int scnd = 0;
-
-	HAL_FLASHEx_OBGetConfig(&OBParam);
-
-	if ((scnd) || ((OBParam.USERConfig & OB_USER_nBOOT0) == OB_nBOOT0_RESET))
+	/* Clear Interrupt Enable Register & Interrupt Pending Register */
+	for (i=0;i<5;i++)
 	{
-		scnd = 1;
-		OBParam.OptionType = OPTIONBYTE_USER;
-		OBParam.USERType = OB_USER_nSWBOOT0 | OB_USER_nBOOT0 | OB_USER_nBOOT1;
-		OBParam.USERConfig = OB_BOOT0_FROM_PIN | OB_nBOOT0_SET | OB_BOOT1_SYSTEM;
+		NVIC->ICER[i]=0xFFFFFFFF;
+		NVIC->ICPR[i]=0xFFFFFFFF;
+	}	
 
-		HAL_FLASH_Unlock();
-		HAL_FLASH_OB_Unlock();
+	/* Re-enable all interrupts */
+	__enable_irq();
 
-		HAL_FLASHEx_OBProgram(&OBParam);
-		HAL_FLASH_OB_Lock();
-		HAL_FLASH_Lock();
-		HAL_FLASH_OB_Launch();
+	/* Set up the jump to booloader address + 4 */
+	SysMemBootJump = (void (*)(void)) (*((uint32_t *) ((BootAddr + 4))));
+
+	/* Set the main stack pointer to the bootloader stack */
+	__set_MSP(*(uint32_t *)BootAddr);
+
+	/* Call the function to jump to bootloader location */
+	SysMemBootJump(); 
+
+	/* Jump is done successfully */
+	while (1)
+	{
+		/* Code should never reach this loop */
 	}
 }
-

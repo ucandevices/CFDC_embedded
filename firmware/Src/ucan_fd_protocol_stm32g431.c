@@ -16,7 +16,6 @@
 extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_buffer_type usb_rx;
 extern Ring_buffer_type usb_tx;
-extern uint8_t gotoboot_flag;
 extern uint32_t status_sys_tick;
 
 UCAN_AckFrameDef ack_frame = 
@@ -76,6 +75,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 	}
 
 	status_sys_tick = HAL_GetTick();
+
 	switch (txf->frame_type) 
 	{
 		case UCAN_FD_INIT:
@@ -125,9 +125,7 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 
 		case UCAN_FD_GO_TO_BOOTLOADER:
 		{
-			ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
-			gotoboot_flag = 1;
-
+			reboot_into_bootloader();
 			break;
 		}
 
@@ -135,18 +133,6 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 		{
 			update_ACK();
 			ring_buffer_push(&usb_tx, (uint8_t*)&ack_frame, sizeof(ack_frame));
-			break;
-		}
-
-		case UCAN_FD_RX:
-		{
-			//not used
-			break;
-		}
-
-		case UCAN_FD_ACK:
-		{
-			//not used
 			break;
 		}
 
