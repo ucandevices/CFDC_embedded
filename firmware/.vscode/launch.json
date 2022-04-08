@@ -1,10 +1,10 @@
 {
   "configurations": [
     {
-      "showDevDebugOutput": true,
+      "showDevDebugOutput": "parsed",
       "cwd": "${workspaceRoot}",
       "executable": "./build/CDC_libUSB_basic.elf",
-      "name": "Debug STM32",
+      "name": "JLink",
       "request": "launch",
       "type": "cortex-debug",
       "servertype": "jlink",
@@ -14,6 +14,34 @@
       "svdFile": "${workspaceRoot}/STM32G431xx.svd",
       "preLaunchTask": "Build STM",
       "device": "STM32G431CB",
+      "configFiles": [
+        "openocd.cfg"
+      ]
+    },
+    {
+      "showDevDebugOutput": "parsed",
+      "cwd": "${workspaceRoot}",
+      "executable": "./build/CDC_libUSB_basic.elf",
+      "name": "STLink",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "openocd",
+      "preLaunchTask": "Build STM",
+      "device": "stm32g431",
+      "configFiles": [
+        "openocd.cfg"
+      ]
+    },
+    {
+      "showDevDebugOutput": "parsed",
+      "cwd": "${workspaceRoot}",
+      "executable": "./build/CDC_libUSB_basic.elf",
+      "name": "Debug STM32",
+      "request": "launch",
+      "type": "cortex-debug",
+      "servertype": "openocd",
+      "preLaunchTask": "Build STM",
+      "device": "stm32g431",
       "configFiles": [
         "openocd.cfg"
       ]
