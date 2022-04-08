@@ -16,16 +16,15 @@
 extern FDCAN_HandleTypeDef hfdcan1;
 extern Ring_buffer_type usb_rx;
 extern Ring_buffer_type usb_tx;
-extern uint32_t status_sys_tick;
 
 UCAN_AckFrameDef ack_frame = 
 { 
 	UCAN_FD_ACK,																				// frame_type
-	UCAN_FD_COMMAND_OK, 																//cmd status
-	{ }, 																								//FDCAN_ProtocolStatusTypeDef
-	{ 0x1A, 0x2B, 0x3C, 0x4D }, 												//FDCAN_ErrorCountersTypeDef
-	{ 0xAABBCCDD, 1213, 5566, 44, 55, 66, 0xAABBCCDD }, //FDCAN_InitTypeDef
-	{ 2, 1, UCAN_CAN_FD, { 1, 2, 3, 4, 5 } } 						//FDCAN_Device_DescritionDef
+	UCAN_FD_COMMAND_OK, 																// cmd status
+	{ }, 																								// FDCAN_ProtocolStatusTypeDef
+	{ 0x1A, 0x2B, 0x3C, 0x4D }, 												// FDCAN_ErrorCountersTypeDef
+	{ 0xAABBCCDD, 1213, 5566, 44, 55, 66, 0xAABBCCDD }, // FDCAN_InitTypeDef
+	{ 2, 1, UCAN_CAN_FD, { 1, 2, 3, 4, 5 } } 						// FDCAN_Device_DescritionDef
 };
 
 
@@ -33,14 +32,14 @@ uint32_t UCAN_get_frame_size(UCAN_FRAME_TYPE ucan_frame)
 {
 	static uint32_t sizeof_array[] = 
 	{ 
-		sizeof(UCAN_InitFrameDef), 						//UCAN_FD_INIT
-		sizeof(UCAN_DeinitFrameDef), 					//UCAN_FD_DEINIT
-		sizeof(UCAN_TxFrameDef), 							//UCAN_FD_TX
-		sizeof(UCAN_SaveConfigFrameDef), 			//UCAN_FD_SAVE_CONFIG
-		sizeof(UCAN_GoToBootladerFrameDef), 	//UCAN_FD_GO_TO_BOOTLOADER
-		sizeof(UCAN_Get_CAN_Status), 					//UCAN_FD_GET_CAN_STATUS
-		sizeof(UCAN_RxFrameDef), 							//UCAN_FD_RX
-		sizeof(UCAN_AckFrameDef) 							//UCAN_FD_ACK
+		sizeof(UCAN_InitFrameDef), 						// UCAN_FD_INIT
+		sizeof(UCAN_DeinitFrameDef), 					// UCAN_FD_DEINIT
+		sizeof(UCAN_TxFrameDef), 							// UCAN_FD_TX
+		sizeof(UCAN_SaveConfigFrameDef), 			// UCAN_FD_SAVE_CONFIG
+		sizeof(UCAN_GoToBootladerFrameDef), 	// UCAN_FD_GO_TO_BOOTLOADER
+		sizeof(UCAN_Get_CAN_Status), 					// UCAN_FD_GET_CAN_STATUS
+		sizeof(UCAN_RxFrameDef), 							// UCAN_FD_RX
+		sizeof(UCAN_AckFrameDef) 							// UCAN_FD_ACK
 	};
 
 	if ((uint32_t) ucan_frame < (uint32_t) UCAN_FD_LAST)
@@ -74,8 +73,6 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 		return 1;
 	}
 
-	status_sys_tick = HAL_GetTick();
-
 	switch (txf->frame_type) 
 	{
 		case UCAN_FD_INIT:
@@ -96,8 +93,6 @@ uint8_t UCAN_execute_USB_to_CAN_frame(uint8_t *data)
 
 		case UCAN_FD_DEINIT:
 		{
-			//UCAN_Deinit();
-			//add ACK to fifo
 			break;
 		}
 

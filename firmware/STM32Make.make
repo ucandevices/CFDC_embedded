@@ -170,7 +170,7 @@ endif
 
 # Add additional flags
 CFLAGS += 
-ASFLAGS += -specs=nosys.specs 
+ASFLAGS += 
 CXXFLAGS += 
 
 # Generate dependency information
@@ -189,7 +189,7 @@ LIBDIR = \
 
 
 # Additional LD Flags from config file
-ADDITIONALLDFLAGS = -specs=nano.specs 
+ADDITIONALLDFLAGS = -specs=nosys.specs 
 
 LDFLAGS = $(MCU) $(ADDITIONALLDFLAGS) -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
