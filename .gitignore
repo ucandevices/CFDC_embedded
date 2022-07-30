@@ -3,3 +3,10 @@
 *.su
 *.mk
 firmware/Debug/
+.vscode/settings.json
+firmware/STM32-for-VSCode.config.yaml
+firmware/STM32Make.make
+firmware/.vscode/launch.json
+firmware/.vscode/launch.json
+tools/uCAN_CAN_Viewer/ucan_can_viewer/build/dist
+tools/uCAN_CAN_Viewer/ucan_can_viewer/build/build
