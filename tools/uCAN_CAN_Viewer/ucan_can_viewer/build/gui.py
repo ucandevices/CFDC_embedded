@@ -8,7 +8,7 @@ from datetime import datetime
 import can
 import time
 from can.interfaces import cfuc
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, messagebox
 from tkinter import ttk
 import threading
 import numpy as np
@@ -17,6 +17,7 @@ import queue
 
 counter = 0
 bus = 0
+conf_file_name = "can.conf"
 
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./assets")
@@ -45,20 +46,33 @@ def relative_to_assets(path: str) -> Path:
 
 def connect_callback():
     print("connect click")
-    can_conf = can.util.load_file_config(path=relative_to_assets("can.conf"))  
-    print (can.util.load_file_config(path=relative_to_assets("can.conf")) )  
-    bus = can.Bus(
-        bustype=can_conf['interface'],
-        channel=can_conf['channel'],
-        CANBaudRate=int(can_conf['CANBaudRate']),
-        IsFD=can_conf['IsFD'] == 'True',
-        FDDataBaudRate=int(can_conf['FDDataBaudRate']),
-    )
+    conf_file_name = entry_1.get()
+    print(conf_file_name)
+    can_conf = can.util.load_file_config(path=relative_to_assets(conf_file_name))  
+    print (can.util.load_file_config(path=relative_to_assets(conf_file_name)) )  
+    if len(can_conf) == 0 :
+            messagebox.showerror(title="Device not found", message="Configuration file not found")
+            return
+    try:
+        bus = can.Bus(
+            bustype=can_conf['interface'],
+            channel=can_conf['channel'],
+            CANBaudRate=int(can_conf['CANBaudRate']),
+            IsFD=can_conf['IsFD'] == 'True',
+            FDDataBaudRate=int(can_conf['FDDataBaudRate']),
+        )
+    except AttributeError:
+        messagebox.showerror(title="Device not found", message="Device not found check " + conf_file_name + " file. Current config: " 
+            + can_conf['interface'] + ", "
+            + can_conf['channel'] + ", "
+            + can_conf['CANBaudRate'] + ", "
+            + can_conf['IsFD'] + ", "
+            + can_conf['FDDataBaudRate'] + ", ",)
     thd = threading.Thread(target=CANrx_thread)   # timer thread
     thd.start()
 
 
-
+# -------------------------------------------- GUI -----------------------------------------------
 
 window = Tk()
 
@@ -107,7 +121,7 @@ canvas.create_text(
     108.0,
     3.0,
     anchor="nw",
-    text="CAN device",
+    text="config file",
     fill="#000000",
     font=("Inter", 12 * -1)
 )
@@ -138,7 +152,7 @@ entry_bg_1 = canvas.create_image(
 entry_1 = Entry(
     bd=0,
     bg="#D9D9D9",
-    highlightthickness=0
+    highlightthickness=0,
 )
 entry_1.place(
     x=108.0,
@@ -146,6 +160,8 @@ entry_1.place(
     width=67.0,
     height=17.0
 )
+
+entry_1.insert(0, conf_file_name)
 
 # Add a Treeview widget
 
