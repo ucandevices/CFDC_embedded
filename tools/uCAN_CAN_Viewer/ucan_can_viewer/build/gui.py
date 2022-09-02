@@ -9,7 +9,7 @@ from re import X
 import can
 import time
 from can.interfaces import cfuc
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, messagebox, Text, Checkbutton
+from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, messagebox, Text, Checkbutton, Label
 from tkinter import ttk
 import tkinter as tk
 import threading
@@ -171,15 +171,24 @@ c1.place(x = 440, y=320)
 c1 = Checkbutton(window, text='ERR',variable=uCAN_ERR, onvalue=1, offvalue=0)
 c1.place(x = 440, y=340)
 
-
+#lll
 #------------------ can send button ----------------------
+def send_can_frame():
+    rand_dlc = 8
+    rand_data = np.random.randint(0, 256, rand_dlc)
+    rand_id = np.random.randint(0, 0x800)
+    msg_to_send = can.Message(
+    arbitration_id=rand_id, dlc=rand_dlc, data=rand_data[0:rand_dlc], is_fd=True)
+    tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex() ))
+    time.sleep(0.001)  # one second
+
 can_send_button_img = PhotoImage(
     file=relative_to_assets("button_send.png"))
 can_send_button = Button(
     image=can_send_button_img,
     borderwidth=0,
     highlightthickness=0,
-    command=lambda: print("can_send_button clicked"),
+    command=send_can_frame,
     relief="flat"
 )
 can_send_button.place(
@@ -223,6 +232,18 @@ canvas.create_text(
     font=("Inter", 12 * -1)
 )
 
+len_can_lbl =Label(text="len:")
+len_can_lbl.place(
+   x=185.0,
+   y=280
+)
+
+def update_can_lenght(event):
+    print("text mod")
+    result=can_frame_text.get("1.0","end")
+    print(len(result))
+    len_can_lbl.config(text = "len: " + str(len(result)))
+
 can_frame_text = Text(window,bd=0,bg="#D9D9D9")
 can_frame_text.place(
     x=85.0,
@@ -230,6 +251,8 @@ can_frame_text.place(
     width=340,
     height=60
 )
+
+can_frame_text.bind('<KeyRelease>', update_can_lenght)
 
 
 
