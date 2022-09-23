@@ -3,6 +3,7 @@
 # https://github.com/ParthJadhav/Tkinter-Designer
 
 
+from cmath import exp
 from pathlib import Path
 from datetime import datetime
 from re import X
@@ -27,31 +28,46 @@ conf_file_name = "can.conf"
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./assets")
 
-def CANrx_thread():
-    if (can_connceted):
-        print('rx CAN Thread start')
-        # msgs_recv = bus.recv()
-        # for msg in msgs_recv:
-        #     if msg != False:
-        #         # if msg.is_fd == True:
-        #         print(msg)
-        #         tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex() ))
-        
+def AddCANFrame(msg_to_send,tree,dir):
+    can_flags_str = ""
+    if msg_to_send.is_fd : can_flags_str += "FD "
+    if msg_to_send.bitrate_switch : can_flags_str += "BRS "
+    if msg_to_send.is_error_frame : can_flags_str += "ERR " 
+    if msg_to_send.is_remote_frame : can_flags_str += "RMT " 
+    if msg_to_send.is_extended_id : can_flags_str += "EX " 
+    tree.insert('', 0 , text="1", values=(dir+datetime.now().strftime("%H:%M:%S.%m"), hex(msg_to_send.arbitration_id), msg_to_send.data.hex(), can_flags_str))
 
-        for x in range(10):
-            rand_dlc = 8
-            rand_data = np.random.randint(0, 256, rand_dlc)
-            rand_id = np.random.randint(0, 0x800)
-            msg_to_send = can.Message(
-            arbitration_id=rand_id, dlc=rand_dlc, data=rand_data[0:rand_dlc], is_fd=True)
-            tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex()," " ))
-            time.sleep(0.001)  # one second
+
+def CANrx_thread():
+    global bus
+    print('rx CAN Thread start')
+    while 1:
+        if (can_connceted):
+            try:
+                msgs_recv = bus.recv()
+                for msg in msgs_recv:
+                    if msg != False:         
+                        print(msg)
+                        AddCANFrame(msg,tree,"Rx: ")
+            except Exception:
+                print("rx execption")
+
+            # for x in range(10):
+            #     rand_dlc = 8
+            #     rand_data = np.random.randint(0, 256, rand_dlc)
+            #     rand_id = np.random.randint(0, 0x800)
+            #     msg_to_send = can.Message(
+            #     arbitration_id=rand_id, dlc=rand_dlc, data=rand_data[0:rand_dlc], is_fd=True)
+            #     AddCANFrame(msg_to_send,tree,"Rx: ")
+            #     time.sleep(3.001)  # one second
+        time.sleep(0.001)  # one second
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
 
 def connect_callback():
     print("connect click")
+    global bus
     global can_connceted
     if (can_connceted == False):   
         conf_file_name = entry_1.get()
@@ -77,6 +93,7 @@ def connect_callback():
                 + can_conf['IsFD'] + ", "
                 + can_conf['FDDataBaudRate'] + ", ",)
             return
+        print ("can interface created")
         can_connceted = True
         button_connect.configure(image=button_connect_img_diss)
         thd = threading.Thread(target=CANrx_thread)   # timer thread
@@ -172,30 +189,25 @@ c_fd.place(x = 440, y=320)
 c_brs = Checkbutton(window, text='BRS',variable=uCAN_BRS, onvalue=1, offvalue=0)
 c_brs.place(x = 440, y=340)
 
-#lll
+
 #------------------ can send button ----------------------
 def send_can_frame():
-
-    hexadecimal_data_string=can_frame_text.get("1.0","end")
-    hexadecimal_id_string=can_id.get()
-    try:
-        can_data_byte_array = bytearray.fromhex(hexadecimal_data_string)
-        can_id_value = int(hexadecimal_id_string,16)
-        can_frame_len = len(can_data_byte_array)
-    except ValueError:
-        len_can_lbl.config(text = "data or id is in wrong format")
-
-    msg_to_send = can.Message(
-    arbitration_id=can_id_value, dlc=can_frame_len, data=can_data_byte_array, is_fd=(uCAN_FD.get()==1), is_extended_id=(uCAN_EXID.get()==1), bitrate_switch=(uCAN_BRS.get()==1),)
-    can_flags_str = ""
-    if msg_to_send.is_fd : can_flags_str += "FD "
-    if msg_to_send.bitrate_switch : can_flags_str += "BRS "
-    if msg_to_send.is_error_frame : can_flags_str += "ERR " 
-    if msg_to_send.is_remote_frame : can_flags_str += "RMT " 
-    if msg_to_send.is_extended_id : can_flags_str += "EX " 
-
-    tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), hex(msg_to_send.arbitration_id), msg_to_send.data.hex(), can_flags_str))
-    time.sleep(0.001)  # one second
+    global bus
+    if (can_connceted == True):   
+        hexadecimal_data_string=can_frame_text.get("1.0","end")
+        hexadecimal_id_string=can_id.get()
+        try:
+            can_data_byte_array = bytearray.fromhex(hexadecimal_data_string)
+            can_id_value = int(hexadecimal_id_string,16)
+            can_frame_len = len(can_data_byte_array)
+            msg_to_send = can.Message(
+                arbitration_id=can_id_value, dlc=can_frame_len, data=can_data_byte_array, is_fd=(uCAN_FD.get()==1), is_extended_id=(uCAN_EXID.get()==1), bitrate_switch=(uCAN_BRS.get()==1),)
+            AddCANFrame(msg_to_send,tree,"Tx: ")
+            bus.send(msg_to_send)
+        except ValueError:
+            len_can_lbl.config(text = "data or id is in wrong format")
+    else:
+        len_can_lbl.config(text = "first click connect button")  
 
 can_send_button_img = PhotoImage(
     file=relative_to_assets("button_send.png"))
@@ -303,11 +315,11 @@ style.configure('Treeview.Heading', background='#3086AB', foreground='#D9D9D9')
 
 tree = ttk.Treeview(window, column=("c1", "c2", "c3", "c4"), show='headings', height=10,)
 
-tree.column("# 1",  anchor="nw",width=80)
+tree.column("# 1",  anchor="nw",width=85)
 tree.heading("# 1", text="Timestamp")
 tree.column("# 2",  anchor="nw",width=60)
 tree.heading("# 2", text="ID")
-tree.column("# 3",  anchor="nw",width=400)
+tree.column("# 3",  anchor="nw",width=410)
 tree.heading("# 3", text="Data")
 tree.column("# 4",  anchor="nw", width=60)
 tree.heading("# 4", text="Flags")
