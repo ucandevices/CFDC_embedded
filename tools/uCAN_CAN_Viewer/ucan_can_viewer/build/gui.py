@@ -23,6 +23,7 @@ counter = 0
 bus = 0
 conf_file_name = "can.conf"
 
+
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./assets")
 
@@ -43,7 +44,7 @@ def CANrx_thread():
             rand_id = np.random.randint(0, 0x800)
             msg_to_send = can.Message(
             arbitration_id=rand_id, dlc=rand_dlc, data=rand_data[0:rand_dlc], is_fd=True)
-            tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex() ))
+            tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex()," " ))
             time.sleep(0.001)  # one second
 
 def relative_to_assets(path: str) -> Path:
@@ -158,28 +159,42 @@ button_2.place(
 #------------------- can opts ----------
 uCAN_EXID = tk.IntVar()
 uCAN_BRS = tk.IntVar()
-uCAN_ERR = tk.IntVar()
+uCAN_FD = tk.IntVar()
 
-#  (var1.get())  
+# c_exid c_brs c_err (var1.get())  
     
-c1 = Checkbutton(window, text='ExID',variable=uCAN_EXID, onvalue=1, offvalue=0)
-c1.place(x = 440, y=300)
+c_exid = Checkbutton(window, text='ExID',variable=uCAN_EXID, onvalue=1, offvalue=0)
+c_exid.place(x = 440, y=300)
 
-c1 = Checkbutton(window, text='BRS',variable=uCAN_BRS, onvalue=1, offvalue=0)
-c1.place(x = 440, y=320)
+c_fd = Checkbutton(window, text='FD',variable=uCAN_FD, onvalue=1, offvalue=0)
+c_fd.place(x = 440, y=320)
 
-c1 = Checkbutton(window, text='ERR',variable=uCAN_ERR, onvalue=1, offvalue=0)
-c1.place(x = 440, y=340)
+c_brs = Checkbutton(window, text='BRS',variable=uCAN_BRS, onvalue=1, offvalue=0)
+c_brs.place(x = 440, y=340)
 
 #lll
 #------------------ can send button ----------------------
 def send_can_frame():
-    rand_dlc = 8
-    rand_data = np.random.randint(0, 256, rand_dlc)
-    rand_id = np.random.randint(0, 0x800)
+
+    hexadecimal_data_string=can_frame_text.get("1.0","end")
+    hexadecimal_id_string=can_id.get()
+    try:
+        can_data_byte_array = bytearray.fromhex(hexadecimal_data_string)
+        can_id_value = int(hexadecimal_id_string,16)
+        can_frame_len = len(can_data_byte_array)
+    except ValueError:
+        len_can_lbl.config(text = "data or id is in wrong format")
+
     msg_to_send = can.Message(
-    arbitration_id=rand_id, dlc=rand_dlc, data=rand_data[0:rand_dlc], is_fd=True)
-    tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), str(msg_to_send.arbitration_id), msg_to_send.data.hex() ))
+    arbitration_id=can_id_value, dlc=can_frame_len, data=can_data_byte_array, is_fd=(uCAN_FD.get()==1), is_extended_id=(uCAN_EXID.get()==1), bitrate_switch=(uCAN_BRS.get()==1),)
+    can_flags_str = ""
+    if msg_to_send.is_fd : can_flags_str += "FD "
+    if msg_to_send.bitrate_switch : can_flags_str += "BRS "
+    if msg_to_send.is_error_frame : can_flags_str += "ERR " 
+    if msg_to_send.is_remote_frame : can_flags_str += "RMT " 
+    if msg_to_send.is_extended_id : can_flags_str += "EX " 
+
+    tree.insert('', 0 , text="1", values=(datetime.now().strftime("%H:%M:%S.%m"), hex(msg_to_send.arbitration_id), msg_to_send.data.hex(), can_flags_str))
     time.sleep(0.001)  # one second
 
 can_send_button_img = PhotoImage(
@@ -239,10 +254,12 @@ len_can_lbl.place(
 )
 
 def update_can_lenght(event):
-    print("text mod")
-    result=can_frame_text.get("1.0","end")
-    print(len(result))
-    len_can_lbl.config(text = "len: " + str(len(result)))
+    hexadecimal_string=can_frame_text.get("1.0","end")
+    try:
+        byte_array = bytearray.fromhex(hexadecimal_string)
+        len_can_lbl.config(text = "len: " + str(len(byte_array)))
+    except ValueError:
+        len_can_lbl.config(text = "data is in wrong format")
 
 can_frame_text = Text(window,bd=0,bg="#D9D9D9")
 can_frame_text.place(
@@ -284,14 +301,16 @@ style.theme_use("clam")
 style.configure('Treeview.Heading', background='#3086AB', foreground='#D9D9D9')
 # style.configure('Treeview', background='#D9D9D9', foreground='black')
 
-tree = ttk.Treeview(window, column=("c1", "c2", "c3"), show='headings', height=10,)
+tree = ttk.Treeview(window, column=("c1", "c2", "c3", "c4"), show='headings', height=10,)
 
-tree.column("# 1",  anchor="nw",)
+tree.column("# 1",  anchor="nw",width=80)
 tree.heading("# 1", text="Timestamp")
-tree.column("# 2",  anchor="nw",)
+tree.column("# 2",  anchor="nw",width=60)
 tree.heading("# 2", text="ID")
-tree.column("# 3",  anchor="nw",)
+tree.column("# 3",  anchor="nw",width=400)
 tree.heading("# 3", text="Data")
+tree.column("# 4",  anchor="nw", width=60)
+tree.heading("# 4", text="Flags")
 
 # Insert the data in Treeview widget
 
