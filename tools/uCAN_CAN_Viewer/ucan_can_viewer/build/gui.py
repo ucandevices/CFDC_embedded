@@ -9,7 +9,7 @@ from re import X
 import can
 import time
 from can.interfaces import cfuc
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage, messagebox, Text, Checkbutton, Label
+from tkinter import Tk, Canvas, Toplevel, Entry, Text, Button, PhotoImage, messagebox, Checkbutton, Label
 from tkinter import ttk
 import tkinter as tk
 import threading
@@ -131,6 +131,7 @@ def connect_callback():
 
 window = Tk()
 window.title("uCANViewer2 v1.0")
+
 
 def on_reflash():
     global bus
@@ -279,6 +280,85 @@ def send_can_frame():
         len_can_lbl.config(text="first click connect button")
 
 
+# -------------- edit cfg can_cfg -----------
+
+# function to open a new window
+# on a button click
+global cfg_text_widget
+global newWindow
+
+can_save_cfg_button_img = PhotoImage(
+    file=relative_to_assets("button_save.png"))
+
+def openNewWindow():
+
+    # Toplevel object which will
+    # be treated as a new window
+    global newWindow
+    newWindow = Toplevel(window)
+
+    # sets the title of the
+    # Toplevel widget
+    newWindow.title("Config file edit")
+
+    # sets the geometry of toplevel
+    newWindow.geometry("200x200")
+
+    # A Label widget to show in toplevel
+    global cfg_text_widget
+    cfg_text_widget = Text(newWindow)
+
+    cfg_save_button = Button(newWindow,
+                             borderwidth=0,
+                             image=can_save_cfg_button_img,
+                             highlightthickness=0,
+                             command=save_cfg,
+                             relief="flat",
+
+                             )
+    cfg_save_button.pack(side=tk.BOTTOM)
+    cfg_text_widget.pack()
+   
+    print("Open cfg file in")
+    print(relative_to_assets(conf_file_name))
+    file = open(relative_to_assets(conf_file_name), mode='r')
+    all_of_it = file.read()
+    file.close()
+
+    cfg_text_widget.insert(tk.INSERT, all_of_it)
+
+
+def save_cfg():
+    global cfg_text_widget
+    global newWindow
+    input = cfg_text_widget.get("1.0", tk.END)
+    file = open(relative_to_assets(conf_file_name), mode='w')
+    file.write(input)
+    file.close()
+    newWindow.destroy()
+    newWindow.update()
+    print("Cfg SAVED")
+
+
+
+can_edit_cfg_button_img = PhotoImage(
+    file=relative_to_assets("edit_cfg.png"))
+
+can_edit_cfg_button = Button(
+    image=can_edit_cfg_button_img,
+    borderwidth=0,
+    highlightthickness=0,
+    command=openNewWindow,
+    relief="flat"
+)
+can_edit_cfg_button.place(
+    x=400.0,
+    y=10.0,
+    width=68.0,
+    height=19.0
+)
+
+
 can_send_button_img = PhotoImage(
     file=relative_to_assets("button_send.png"))
 can_send_button = Button(
@@ -384,7 +464,7 @@ style.theme_use("clam")
 style.configure('Treeview.Heading', background='#3086AB', foreground='#D9D9D9')
 # style.configure('Treeview', background='#D9D9D9', foreground='black')
 
-tree = ttk.Treeview(window, column=("c1", "c2", "c3", "c4","c5"),
+tree = ttk.Treeview(window, column=("c1", "c2", "c3", "c4", "c5"),
                     show='headings', height=10,)
 
 tree.column("# 1",  anchor="nw", width=85)
