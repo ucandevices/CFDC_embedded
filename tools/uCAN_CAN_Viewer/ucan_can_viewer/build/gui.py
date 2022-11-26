@@ -27,7 +27,7 @@ thd = None
 OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path("./assets")
 
-
+timestamps_map = {}
 def AddCANFrame(msg_to_send, tree, dir):
     can_flags_str = ""
     if msg_to_send.is_fd:
@@ -44,10 +44,23 @@ def AddCANFrame(msg_to_send, tree, dir):
     hex_string = ''.join(format(x, ' 02x')
                          for x in msg_to_send.data[0:msg_to_send.dlc])
 
-    tree.insert('', 0, text="1", values=(dir+datetime.now().strftime("%H:%M:%S.%m"),
+    global delta_view
+    global timestamps_map
+
+    if delta_view == False:
+        tree.insert('', 0, text="1", values=(dir+datetime.now().strftime("%H:%M:%S.%m"),
                 hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
-
-
+    else:
+        try:
+            delta_t = datetime.now() - timestamps_map[msg_to_send.arbitration_id]            
+            timestamps_map[msg_to_send.arbitration_id] = datetime.now() 
+            tree.item(msg_to_send.arbitration_id, text="1", values=(dir+"{:02d}.{:03d}".format(delta_t.seconds,round(delta_t.microseconds/1000)),
+                hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
+        except:
+            timestamps_map[msg_to_send.arbitration_id] = datetime.now() 
+            tree.insert('', 0, iid=msg_to_send.arbitration_id, text="1", values=(dir+'0.0',
+                hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
+        
 def CANrx_thread():
     global bus
     global can_connected
@@ -204,6 +217,31 @@ canvas.create_text(
     text="config file",
     fill="#000000",
     font=("Inter", 12 * -1)
+)
+
+# switch view
+ 
+delta_view = False
+def switch_view():
+    global delta_view 
+    delta_view = not delta_view
+    print("delta view is:" + str(delta_view))
+    tree.delete(*tree.get_children())
+
+switch_view_img = PhotoImage(
+    file=relative_to_assets("switch_view.png"))
+switch_view_btn = Button(
+    image=switch_view_img,
+    borderwidth=0,
+    highlightthickness=0,
+    command=switch_view,
+    relief="flat"
+)
+switch_view_btn.place(
+    x=250.0,
+    y=10.0,
+    width=100.0,
+    height=19.0
 )
 
 # clear
