@@ -728,8 +728,8 @@ static void vPortEnableVFP( void )
 
     void vPortValidateInterruptPriority( void )
     {
-        volatile uint32_t ulCurrentInterrupt;
-        volatile uint8_t ucCurrentPriority;
+        uint32_t ulCurrentInterrupt;
+        uint8_t ucCurrentPriority;
 
         /* Obtain the number of the currently executing interrupt. */
         __asm volatile ( "mrs %0, ipsr" : "=r" ( ulCurrentInterrupt )::"memory" );
@@ -763,7 +763,7 @@ static void vPortEnableVFP( void )
              * The following links provide detailed information:
              * https://www.FreeRTOS.org/RTOS-Cortex-M3-M4.html
              * https://www.FreeRTOS.org/FAQHelp.html */
-            //configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
+            configASSERT( ucCurrentPriority >= ucMaxSysCallPriority );
         }
 
         /* Priority grouping:  The interrupt controller (NVIC) allows the bits

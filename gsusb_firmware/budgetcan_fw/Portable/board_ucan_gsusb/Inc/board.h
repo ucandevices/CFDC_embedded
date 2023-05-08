@@ -84,7 +84,7 @@ extern "C" {
 
 #define BOARD_TIM2_PRESCALER   64-1
 
-#define QUEUE_SIZE_HOST_TO_DEV 32
+#define QUEUE_SIZE_HOST_TO_DEV 64
 #define QUEUE_SIZE_DEV_TO_HOST 32
 
 // #define USER_BTN_K1_Pin		   GPIO_PIN_3

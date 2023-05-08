@@ -157,7 +157,7 @@ static void task_my_program(void *argument)
 		/* if GPIO is pressed then send*/
 		
 			// frame_object.frame.can_dlc = 8;
-			// frame_object.frame.can_id = 0x123;
+			// frame_object.frame.can_id = 0x111;
 			// frame_object.frame.channel = 0;
 			// frame_object.frame.echo_id = 0xFFFFFFFF;
 			// frame_object.frame.flags = 0;
@@ -171,7 +171,7 @@ static void task_my_program(void *argument)
 			// frame_object.frame.classic_can->data[7] = 0x88;
 			// frame_object.frame.classic_can_ts->timestamp_us = __HAL_TIM_GET_COUNTER(&htim2);
 			// if (host_channel_is_active) {
-			// 	xQueueSendToBack(hGS_CAN.queue_from_hostHandle, &frame_object.frame, 0);
+			// 	xQueueSendToBack(hGS_CAN.queue_to_hostHandle, &frame_object.frame, 0);
 			// }
     static volatile int ii = 0;
     if ((ii % 2) == 0)
@@ -208,8 +208,11 @@ void main_rtos_init_cb(void)
 
 void main_task_cb(void)
 {
+  // static FDCAN_ProtocolStatusTypeDef ProtocolStatus;
+
 	/* update all the LEDs */
 	led_update(&hled1);
+  // HAL_FDCAN_GetProtocolStatus(hGS_CAN.channels[0], &ProtocolStatus);
 }
 
 void can_on_enable_cb(uint8_t channel)
@@ -218,7 +221,7 @@ void can_on_enable_cb(uint8_t channel)
 	led_set_active(&hled1);
 	host_channel_is_active = true;
 
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 5, 0);
+    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 8 + 5, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
 }
 
