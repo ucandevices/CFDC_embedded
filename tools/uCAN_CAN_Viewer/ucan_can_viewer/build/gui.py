@@ -6,15 +6,26 @@ from glob import glob
 from pathlib import Path
 from datetime import datetime
 from re import X
-import can
+# import can
 import time
-from can.interfaces import cfuc
+# from can.interfaces import cfuc
 from tkinter import Tk, Canvas, Toplevel, Entry, Text, Button, PhotoImage, messagebox, Checkbutton, Label
 from tkinter import ttk
 import tkinter as tk
 import threading
 import os
-from serial import SerialException
+# from serial import SerialException
+
+from gs_usb.gs_usb import GsUsb
+from gs_usb.gs_usb_frame import GsUsbFrame
+from gs_usb.constants import (
+    CAN_EFF_FLAG,
+    CAN_ERR_FLAG,
+    CAN_RTR_FLAG,
+    GS_CAN_MODE_LISTEN_ONLY,
+    GS_CAN_MODE_LOOP_BACK,
+    GS_CAN_MODE_NORMAL,
+)
 
 
 can_connected = False
@@ -22,6 +33,7 @@ counter = 0
 bus = 0
 conf_file_name = "can.conf"
 thd = None
+dev = None
 
 
 OUTPUT_PATH = Path(__file__).parent
@@ -30,10 +42,10 @@ ASSETS_PATH = OUTPUT_PATH / Path("./assets")
 timestamps_map = {}
 def AddCANFrame(msg_to_send, tree, dir):
     can_flags_str = ""
-    if msg_to_send.is_fd:
-        can_flags_str += "FD "
-    if msg_to_send.bitrate_switch:
-        can_flags_str += "BRS "
+    # if msg_to_send.is_fd:
+        # can_flags_str += "FD "
+    # if msg_to_send.bitrate_switch:
+    #     can_flags_str += "BRS "
     if msg_to_send.is_error_frame:
         can_flags_str += "ERR "
     if msg_to_send.is_remote_frame:
@@ -42,44 +54,40 @@ def AddCANFrame(msg_to_send, tree, dir):
         can_flags_str += "EX "
 
     hex_string = ''.join(format(x, ' 02x')
-                         for x in msg_to_send.data[0:msg_to_send.dlc])
+                         for x in msg_to_send.data[0:msg_to_send.can_dlc])
 
     global delta_view
     global timestamps_map
 
     if delta_view == False:
         tree.insert('', 0, text="1", values=(dir+datetime.now().strftime("%H:%M:%S.%m"),
-                hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
+                hex(msg_to_send.can_id), hex(msg_to_send.can_dlc), str(hex_string), can_flags_str))
     else:
         try:
-            delta_t = datetime.now() - timestamps_map[msg_to_send.arbitration_id]            
-            timestamps_map[msg_to_send.arbitration_id] = datetime.now() 
-            tree.item(msg_to_send.arbitration_id, text="1", values=(dir+"{:02d}.{:03d}".format(delta_t.seconds,round(delta_t.microseconds/1000)),
-                hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
+            delta_t = datetime.now() - timestamps_map[msg_to_send.can_id]            
+            timestamps_map[msg_to_send.can_id] = datetime.now() 
+            tree.item(msg_to_send.can_id, text="1", values=(dir+"{:02d}.{:03d}".format(delta_t.seconds,round(delta_t.microseconds/1000)),
+                hex(msg_to_send.can_id), hex(msg_to_send.can_dlc), str(hex_string), can_flags_str))
         except:
-            timestamps_map[msg_to_send.arbitration_id] = datetime.now() 
-            tree.insert('', 0, iid=msg_to_send.arbitration_id, text="1", values=(dir+'0.0',
-                hex(msg_to_send.arbitration_id), hex(msg_to_send.dlc), str(hex_string), can_flags_str))
+            timestamps_map[msg_to_send.can_id] = datetime.now() 
+            tree.insert('', 0, iid=msg_to_send.can_id, text="1", values=(dir+'0.0',
+                hex(msg_to_send.can_id), hex(msg_to_send.can_dlc), str(hex_string), can_flags_str))
         
 def CANrx_thread():
-    global bus
+    global dev
     global can_connected
     print('can rx thread started')
     while 1:
         if (can_connected == True):
             try:
-                msgs_recv = bus.recv(0.2)
-                if (msgs_recv != None):
-                    for msg in msgs_recv:
-                        if msg != False:
-                            print(msg)
-                            AddCANFrame(msg, tree, "Rx: ")
+                msgs_recv = GsUsbFrame()
+                if dev.read(msgs_recv, 1):
+                    print("RX  {}".format(msgs_recv))
+                    AddCANFrame(msgs_recv, tree, "Rx: ")
             except Exception:
                 print("rx exception")
                 can_connected = False
-                bus.shutdown()
                 break
-
         else:
             break
         time.sleep(0.001)  # one second
@@ -98,36 +106,24 @@ def relative_to_assets(path: str) -> Path:
 
 def connect_callback():
     print("connect click")
-    global bus
+    global dev
     global can_connected
     global thd
 
     if (can_connected == False):
-        conf_file_name = entry_1.get()
-        print(conf_file_name)
-        can_conf = can.util.load_file_config(
-            path=relative_to_assets(conf_file_name))
-        print(can.util.load_file_config(path=relative_to_assets(conf_file_name)))
-        if len(can_conf) == 0:
-            messagebox.showerror(title="Device not found",
-                                 message="Configuration file not found")
+        devs = GsUsb.scan()
+        if len(devs) == 0:
+            print("Can not find gs_usb device")
             return
-        try:
-            bus = can.Bus(
-                bustype=can_conf['interface'],
-                channel=can_conf['channel'],
-                CANBaudRate=int(can_conf['CANBaudRate']),
-                IsFD=can_conf['IsFD'] == 'True',
-                FDDataBaudRate=int(can_conf['FDDataBaudRate']),
-            )
-        except (AttributeError, SerialException) as error:
-            messagebox.showerror(title="Device not found", message=repr(error)+": Device not found check " + conf_file_name + " file. Current config: "
-                                 + can_conf['interface'] + ", "
-                                 + can_conf['channel'] + ", "
-                                 + can_conf['CANBaudRate'] + ", "
-                                 + can_conf['IsFD'] + ", "
-                                 + can_conf['FDDataBaudRate'] + ", ",)
+        dev = devs[1]
+
+        if not dev.set_bitrate(1000000):
+            print("Can not set bitrate for gs_usb")
             return
+
+        # Start device
+        dev.start(GS_CAN_MODE_NORMAL)
+
         print("can interface created")
         can_connected = True
         button_connect.configure(image=button_connect_img_diss)
@@ -137,8 +133,13 @@ def connect_callback():
         button_connect.configure(image=button_connect_img)
         can_connected = False
         thd.join()
-        bus.shutdown()
+        dev.stop()
 
+def CANtx(msg):
+    global dev
+    global can_connected
+    if dev.send(msg):
+        print("TX  {}".format(msg))
 # -------------------------------------------- GUI -----------------------------------------------
 
 
@@ -299,19 +300,19 @@ c_brs.place(x=440, y=340)
 
 # ------------------ can send button ----------------------
 def send_can_frame():
-    global bus
     if (can_connected == True):
         hexadecimal_data_string = can_frame_text.get("1.0", "end")
         hexadecimal_id_string = can_id.get()
         try:
-            can_data_byte_array = bytearray.fromhex(hexadecimal_data_string)
+            can_data_byte_array = bytes(bytearray.fromhex(hexadecimal_data_string))
+            data = b"\x12\x34\x56\x78\x9A\xBC\xDE\xF0" 
             can_id_value = int(hexadecimal_id_string, 16)
-            can_frame_len = len(can_data_byte_array)
-            msg_to_send = can.Message(
-                arbitration_id=can_id_value, dlc=can_frame_len, data=can_data_byte_array, is_fd=(uCAN_FD.get() == 1), is_extended_id=(uCAN_EXID.get() == 1), bitrate_switch=(uCAN_BRS.get() == 1),)
+            
+            msg_to_send = GsUsbFrame(can_id=can_id_value, data=can_data_byte_array)
+            
             AddCANFrame(msg_to_send, tree, "Tx: ")
-            print(msg_to_send)
-            bus.send(msg_to_send)
+            CANtx(msg_to_send)
+            
         except ValueError:
             len_can_lbl.config(text="data or id is in wrong format")
     else:
