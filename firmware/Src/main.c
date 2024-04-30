@@ -32,6 +32,7 @@
 #include "dwt_delay.h"
 #include "usbd_cdc_if.h"
 #include "bootloader.h"
+#include "slcan/slcan.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -54,8 +55,8 @@ extern USBD_HandleTypeDef hUsbDeviceFS;
 /* USER CODE BEGIN PV */
 Ring_buffer_type usb_rx;
 Ring_buffer_type usb_tx;
-UCAN_RxFrameDef can_rx_frame = { UCAN_FD_RX,	0, {} };
-
+ucan_rx_can_def can_rx_frame;
+int32_t serialNumber;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -100,12 +101,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USB_Device_Init();
-  MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
-	HAL_FDCAN_Start(&hfdcan1);
+	// HAL_FDCAN_Start(&hfdcan1);
 	ring_buffer_init(&usb_rx);
 	ring_buffer_init(&usb_tx);
   HAL_GPIO_WritePin(CAN_STBY_Pin, CAN_STBY_GPIO_Port, GPIO_PIN_RESET);
+
+//  volatile int32_t ccc = HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_FDCAN);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -117,46 +119,21 @@ int main(void)
 
 		data_ptr = ring_buffer_get(&usb_rx);
 
+
 		if (data_ptr->data != NULL) 
     {
-			UCAN_execute_USB_to_CAN_frame(data_ptr->data);
+      slCanCheckCommand(data_ptr->data);         // Process and respond on USB --> CAN     
 		}
-
-    if (CDC_Is_Busy() != USBD_BUSY)
-    {
-      if (can_rx_frame.can_frame_count > 0)
-      {
-        data_ptr->data = (uint8_t*)&can_rx_frame;
-        data_ptr->len = sizeof(UCAN_RxFrameDef);
-      } 
-      else  /* handle rest of frames is no CAN transactions */
-      {
-        data_ptr = ring_buffer_get(&usb_tx);
-      }
-
-      if (data_ptr->len != 0) 
-      {
-        while (CDC_Transmit_FS(data_ptr->data, data_ptr->len) == USBD_BUSY);
-
-        if (data_ptr->len == sizeof(UCAN_RxFrameDef))
-        {
-          can_rx_frame.can_frame_count = 0;
-        }
-      }
-    }
 
 		if (HAL_FDCAN_GetRxFifoFillLevel(&hfdcan1, FDCAN_RX_FIFO0)) // Receiving frames from canbus
     {
-			if (can_rx_frame.can_frame_count < UCAN_RX_FRAME_DEF_CAN_COUNT_MAX)
-			{
 				if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0,
-						&(can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_rx_header),
-						can_rx_frame.can_frame[can_rx_frame.can_frame_count].can_data) == HAL_OK)
+						&(can_rx_frame.can_rx_header),
+						can_rx_frame.can_data) == HAL_OK)
 				{
+          slcanReciveCanFrame(&can_rx_frame);    // Process and send CAN --> USB
           HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-          can_rx_frame.can_frame_count ++;
-				}
-			}
+        }
 		}
 
     /* USER CODE END WHILE */
