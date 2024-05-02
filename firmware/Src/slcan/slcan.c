@@ -418,14 +418,15 @@ uint8_t slCanCheckCommand(uint8_t *line)
             break;
         case 'F': // Read status flags
             {
-                // unsigned char status = HAL_CAN_GetError(&hcan);
-//                unsigned char flags = HAL_CAN_GetError(&hcan);
-//                if (flags & 0x01) status |= 0x04; // error warning
-//                if (flags & 0xC0) status |= 0x08; // data overrun
-//                if (flags & 0x18) status |= 0x20; // passive error
-//                if (flags & 0x20) status |= 0x80; // bus error
+                static FDCAN_ProtocolStatusTypeDef flags;
+                HAL_FDCAN_GetProtocolStatus(&hfdcan1, &flags);
+                uint8_t status = 0;
+                if (flags.Warning) status |= 0x04; // error warning
+                if (flags.LastErrorCode != FDCAN_PROTOCOL_ERROR_NONE) status |= 0x08; // data overrun
+                if (flags.ErrorPassive) status |= 0x20; // passive error
+                if (flags.BusOff) status |= 0x80; // bus error
                 slcanSetOutputChar('F');
-                // slcanSetOutputAsHex(status);
+                slcanSetOutputAsHex(status);
                 result = terminator;
             }
             break;
@@ -447,7 +448,7 @@ uint8_t slCanCheckCommand(uint8_t *line)
         		 line[1] = 0;
         		 line[2] = 0;
         		 line[3] = 0;
-        		//  RebootToBootloader();
+        		 reboot_into_bootloader();
         	 }
         	 break;
 
